@@ -6,45 +6,502 @@
 <meta name="keywords" content="寿星天文历;寿星万年历;黄历;农历;农历计算;算法;天文算法;天文历;万年历;伊斯兰历;回历;节气;交节时刻">
 <meta name="description" content="寿星万年历是一个免费在线万年历工具，提供公历和农历日期的查询、天文历查询、传统节日查询、节气查询等功能。">
 <style>
- td {font-family:宋体; font-size:12px; line-height:150%}
+ :root {
+  color-scheme: light;
+  --page: #f6f7f9;
+  --surface: #ffffff;
+  --surface-subtle: #f9fafb;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+  --warning: #b45309;
+  --warning-bg: #fffbeb;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --info-bg: #eff6ff;
+  --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+ }
+ * { box-sizing: border-box; }
+ html { background: var(--page); }
+ body {
+  margin: 0;
+  min-width: 0;
+  background:
+   linear-gradient(180deg, #ffffff 0, #f6f7f9 320px);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+ }
+ center {
+  display: block;
+  width: min(1120px, calc(100vw - 32px));
+  margin: 24px auto 40px;
+  text-align: initial;
+ }
+ body > center > table,
+ body > center > table > tbody,
+ body > center > table > tbody > tr,
+ body > center > table > tbody > tr > td {
+  display: block;
+  width: 100% !important;
+ }
+ table {
+  border-collapse: separate;
+  border-spacing: 0;
+  max-width: 100%;
+ }
+ td {
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+ }
+ pre,
+ textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+   "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+ }
  pre {
-  font-family:宋体;
-  font-size: 12px;
-  line-height: 1.2;
+  margin: 8px 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+ }
+ a {
+  color: var(--accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+ }
+ a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+ }
+ b { font-weight: 500; }
+ hr {
+  height: 1px;
+  margin: 12px 0;
+  border: 0;
+  background: var(--border);
+ }
+ input,
+ select,
+ textarea,
+ button {
+  max-width: 100%;
+  font: inherit;
+ }
+ input[type="text"],
+ input[type="textbox"],
+ textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+   "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+ }
+ div[id^="Cal"],
+ span[id^="Cal"],
+ td[id^="Cal"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+   "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+ }
+ input[type="text"],
+ input[type="textbox"],
+ select,
+ textarea {
+  min-height: 32px;
+  margin: 3px 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+ }
+ input[type="text"],
+ input[type="textbox"] {
+  padding: 4px 8px;
+ }
+ select {
+  padding: 4px 28px 4px 8px;
  }
  textarea {
-  font-family:宋体;
-  font-size: 12px;
-  line-height: 1.2;
+  width: min(100%, 920px);
+  padding: 10px 12px;
+  overflow: auto;
+  background: #f8fafc;
+  resize: vertical;
  }
- a {text-decoration: none;}
- a:hover {color: #FF0000}
- .cua a {padding: 2px 1px 2px 1px;
+ input[type="text"]:focus,
+ input[type="textbox"]:focus,
+ select:focus,
+ textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+ }
+ input[type="button"],
+ button {
+  min-height: 32px;
+  margin: 3px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease,
+   box-shadow .15s ease;
+ }
+ input[type="button"]:hover,
+ button:hover {
+  border-color: #cbd5e1;
+  background: var(--surface-subtle);
+ }
+ input[type="button"]:focus-visible,
+ button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .18);
+ }
+ input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0 6px 0 4px;
+  vertical-align: -2px;
+  accent-color: var(--accent);
+ }
+ canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+ }
+ font[color="red"],
+ font[color="#FF0000"],
+ font[color="#ff0000"] { color: var(--danger) !important; }
+ font[color="green"],
+ font[color="#00C000"] { color: var(--success) !important; }
+ font[color="blue"],
+ font[color="#0000FF"],
+ font[color="#0000ff"] { color: var(--accent) !important; }
+ .cua {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+ }
+ .cua a {
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
   text-decoration: none;
-  background-image: linear-gradient(#F2F9E4, #C1E5A2);
-  background-size: 0% 2px;
-  background-repeat: no-repeat;
-  background-position: left 85%;
-  transition: background-size 0.2s ease;
  }
- .cua a:hover {background-size: 100% 13px;}
- .hzb     { font-size: 12px; line-height: 0.9;}
- .fixcell { height: 263px; overflow: hidden; }
- .bd0   {border: 0px}
- .bd1   {border: 1px solid #888888}
- .bd15  {border-left:   1px solid #888888;border-right:  1px solid #888888;border-top: 1px solid #888888}
- .bd2   {border: 2px solid #000000}
- .dTop  {border-top:    1px solid #000000}
- .dBot  {border-bottom: 1px solid #000000}
- .dRig  {border-right:  1px solid #C0C0C0}
- .dLef  {border-left:   1px solid #C0C0C0}
- .dRB   {border-right:  1px solid #000000;border-bottom: 1px solid #000000}
- .dRT   {border-right:  1px solid #000000;border-top:    1px solid #000000}
- .dTBr  {border-bottom: 1px solid #FFC0C0;border-top:    1px solid #FFC0C0}
- .dBr   {border-bottom: 1px solid #FFC0C0}
- .dTr   {border-top:    1px solid #FFC0C0}
- .dBot2 {border-bottom: 1px solid #C0C0C0}
- .dTop2 {border-top:    1px solid #C0C0C0}
+ .cua a:hover {
+  border-color: var(--border);
+  background: var(--surface-subtle);
+  color: var(--accent);
+ }
+ .hzb { font-size: 12px; line-height: 1.2; color: var(--muted); }
+ .fixcell {
+  height: 263px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--surface-subtle);
+ }
+ .bd0 { border: 0; }
+ .bd1,
+ .bd15,
+ .bd2 {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+ }
+ .bd1 {
+  width: min(100%, 1120px) !important;
+  table-layout: fixed;
+ }
+ body > center > table > tbody > tr > td > table.bd1,
+ body > center > table > tbody > tr > td > table.bd1 > tbody,
+ body > center > table > tbody > tr > td > table.bd1 > tbody > tr,
+ body > center > table > tbody > tr > td > table.bd1 > tbody > tr > td {
+  max-width: 1120px;
+ }
+ .dTop,
+ .dBot,
+ .dRig,
+ .dLef,
+ .dRB,
+ .dRT,
+ .dTBr,
+ .dBr,
+ .dTr,
+ .dBot2,
+ .dTop2 {
+  border-color: var(--border) !important;
+ }
+ .dRig { border-right: 1px solid var(--border); }
+ .dBot2 { padding: 16px; border-bottom: 1px solid var(--border); }
+ .dTop2 { padding: 14px 16px; border-top: 1px solid var(--border); color: var(--muted); }
+ body > center > table > tbody > tr > td > table:first-child {
+  width: 100% !important;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+ }
+ body > center > table > tbody > tr > td > table:first-child table[width="770"] {
+  width: 100% !important;
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child > td {
+  padding: 14px 16px;
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border);
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td:first-child span:first-child {
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td:first-child span:nth-child(2),
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td:first-child span:nth-child(3) {
+  color: var(--text) !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td[align="right"] {
+  text-align: right;
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child input[type="button"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child input[type="button"]:hover {
+  background: var(--surface-subtle);
+  color: var(--accent);
+ }
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:nth-child(2) td,
+ body > center > table > tbody > tr > td > table:first-child > tbody > tr:nth-child(3) td {
+  padding: 8px 16px;
+  background: var(--surface-subtle);
+  color: var(--muted);
+ }
+ #tools {
+  padding-top: 8px;
+ }
+ #help {
+  padding: 16px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px 10px 0 0;
+  background: var(--info-bg);
+  color: var(--text);
+ }
+ #page1 > td:first-child {
+  padding: 16px;
+  background: var(--surface-subtle);
+ }
+ #page1 > td:last-child {
+  padding: 16px;
+ }
+ #Cal2 table {
+  width: 100% !important;
+  height: auto !important;
+  border-collapse: separate;
+  border-spacing: 4px;
+ }
+ #Cal2 td {
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  vertical-align: top;
+ }
+ #Cal2 tr:first-child td {
+  height: auto;
+  padding: 8px;
+  border-color: transparent;
+  background: var(--surface-subtle) !important;
+  color: var(--text) !important;
+  font-weight: 500 !important;
+ }
+ #Cal2 tr:nth-child(2) td {
+  height: 32px;
+  background: var(--surface-subtle) !important;
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+ }
+ #Cal2 span[style*="Arial Black"] {
+  display: inline-block;
+  min-width: 30px;
+  font-family: inherit !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+ }
+ #Cal2 span[style*="background-color:#90D050"] {
+  border-radius: 8px;
+  background: var(--accent) !important;
+  color: #ffffff !important;
+ }
+ #Cal2 .gz-day {
+  color: var(--muted);
+  font-size: 12px;
+ }
+ #Cal4,
+ #Cal5 {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+ }
+ #Cal4:empty,
+ #Cal5:empty {
+  display: none;
+ }
+ tr[id^="page"][style*="block"] {
+  display: table-row !important;
+ }
+ [id^="page"] > td {
+  padding: 16px;
+  max-width: 1120px;
+  overflow-x: auto;
+ }
+ [id^="page"] table td {
+  padding: 4px;
+ }
+ [id^="page"] table {
+  max-width: 100%;
+ }
+ [id^="page"] pre,
+ [id^="page"] textarea,
+ [id^="page"] div {
+  max-width: 100%;
+ }
+ #page3 > td:first-child {
+  width: 36% !important;
+  max-width: none;
+  padding: 16px;
+  background: var(--surface-subtle);
+  overflow: auto;
+ }
+ #page3 > td:last-child {
+  width: 64% !important;
+  max-width: none;
+  padding: 16px;
+  overflow: auto;
+ }
+ #Cal_zb {
+  font-size: 14px;
+ }
+ #Cal_zb table {
+  width: 100% !important;
+  table-layout: auto;
+ }
+ #Cal_zb td {
+  overflow-wrap: normal;
+  word-break: keep-all;
+ }
+ #Cb_zb,
+ #Cb_b1,
+ #Cb_b2 {
+  overflow-wrap: normal;
+  word-break: normal;
+ }
+ #page10 canvas {
+  margin-top: 8px;
+ }
+ #Cal_pan {
+  width: 220px !important;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .18) !important;
+  overflow: hidden;
+ }
+ #Cal_pan_in {
+  width: auto !important;
+  padding: 10px 12px !important;
+  background: rgba(17, 24, 39, .94) !important;
+  color: #ffffff !important;
+  font-family: inherit;
+  font-size: 13px;
+ }
+ #out {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-subtle);
+ }
+ @media (max-width: 820px) {
+  center {
+   width: min(100vw - 16px, 100%);
+   margin: 8px auto 24px;
+  }
+  body > center table[width="770"],
+  body > center table[width="900"] {
+   width: 100% !important;
+  }
+  body > center table[width="770"] > tbody,
+  body > center table[width="770"] > tbody > tr,
+  body > center table[width="770"] > tbody > tr > td {
+   display: block;
+   width: 100% !important;
+  }
+  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td,
+  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td[align="right"] {
+   display: block;
+   width: 100% !important;
+   text-align: left;
+  }
+  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child input[type="button"] {
+   margin-top: 8px;
+  }
+  #page1 > td,
+  #page3 > td {
+   display: block;
+   width: 100% !important;
+   max-width: 100% !important;
+   min-width: 0 !important;
+   border-right: 0;
+  }
+  [id^="page"] > td {
+   padding: 12px;
+  }
+  input[type="button"] {
+   padding: 5px 10px;
+  }
+  #Cal2 span[style*="Arial Black"] {
+   min-width: 24px;
+   font-size: 18px !important;
+  }
+  #Cal2 td {
+   height: 52px;
+   font-size: 12px;
+  }
+  textarea {
+   width: 100%;
+  }
+ }
 </style>
 <script language="javascript">
 function trim(s){return s.replace(/(^\s*)|(\s*$)/g,"");}
@@ -519,10 +976,9 @@ for(i=0;i<this.dn;i++){
 ob=this.lun[i];
 if(!i){for(j=0;j<this.w0;j++)cr+='<td'+sty_body+'></td>';}
 c='',isM='';
-if(!ob.yxmc&&!ob.jqmc){if(ob.A)c+='<font color=red>'+this.substr2(ob.A,4,'..')+'</font>';}else{if(ob.A)c='<font color=red>'+this.substr2(ob.A,3,'..')+'</font>';}
-if(!ob.yxmc&&!ob.jqmc){if(!c&&ob.B)c='<font color=blue>'+this.substr2(ob.B,4,'..')+'</font>';}else{if(!c&&ob.B&&ob.yxmc&&ob.jqmc)c='<font color=blue>'+this.substr2(ob.B,2,'..')+'</font>';else{if(!c&&ob.B)c='<font color=blue>'+this.substr2(ob.B,3,'..')+'</font>';}}
-if(!c&&ob.Ldc=="初一")c=ob.Lleap+ob.Lmc+'月'+(ob.Ldn==30?'大':'小');
-if(!c)c=ob.Ldc;
+if(ob.Ldc=="初一")c=ob.Lleap+ob.Lmc+'月'+(ob.Ldn==30?'大':'小');
+else c=ob.Ldc;
+c+='<br><span class="gz-day">'+ob.Lday2+'</span>';
 if(ob.yxmc=="朔")isM='<font color=#505000>●</font>';
 if(ob.yxmc=="望")isM='<font color=#F0B000>●</font>';
 if(ob.yxmc=="上弦")isM='<font color=#F0B000>◑</font>';
@@ -744,10 +1200,7 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
  </td>
  <td width="65%" valign="top">
 <table width="100%" cellspacing="0" cellpadding="0">
- <tbody><tr><td align="center">
-  <div id="Cal2"></div>
- </td></tr>
-  <tr><td align=center bgcolor="#E0E0FF">
+ <tbody><tr><td align=center bgcolor="#E0E0FF">
 <table width="100%" class="bd0" cellpadding="0" cellspacing="3">
 <tbody>
 <tr>
@@ -762,6 +1215,9 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
 </tbody>
 </table>
   </td></tr>
+ <tr><td align="center">
+  <div id="Cal2"></div>
+ </td></tr>
 </tbody></table>
  </td>
 </tr>
@@ -1110,7 +1566,7 @@ UTC/TD<input id="Cf_ut" type="checkbox" checked="">
 </td></tr>
 
 <!--版权区-->
-<tr><td class="dTop2" colspan="2" align="center"><span class="cua"><font color="green"><b>✉:</b></font><a title="给 许剑伟 写封 E-Mail 吧 ..." href="mailto:xunmeng04@163.com">xunmeng04@163.com</a><font color="red"> 许剑伟(福建莆田第十中学)保留版权 © 2008-2025</font></span></td></tr>
+<tr><td class="dTop2" colspan="2" align="center">许剑伟(福建莆田第十中学)保留版权 © 2008-2025</td></tr>
 
 </tbody></table>
 
