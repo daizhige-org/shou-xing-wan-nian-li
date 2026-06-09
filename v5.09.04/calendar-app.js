@@ -605,9 +605,9 @@ function showPage(pg){
 }
 
 function tools(){
-  var ob=document.all.tools.style;
+  var el=document.all.tools, ob=el.style;
   var shell=document.querySelector('.top-shell');
-  if(ob.display=="none"){
+  if(getComputedStyle(el).display=="none"){
     ob.display="block";
     if(shell) shell.classList.add('is-menu-open');
   } else {
@@ -617,8 +617,8 @@ function tools(){
 }
 
 function readme(){
-  var ob=document.all.help.style;
-  if(ob.display=="none") showHelp(1);
+  var el=document.all.help;
+  if(getComputedStyle(el).display=="none") showHelp(1);
   else showHelp(0);
 }
 
