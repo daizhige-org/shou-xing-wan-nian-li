@@ -502,7 +502,7 @@ if(!i){for(j=0;j<this.w0;j++)cr+='<td'+sty_body+'></td>';}
 c='',isM='';
 if(ob.Ldc=="初一")c=ob.Lleap+ob.Lmc+'月'+(ob.Ldn==30?'大':'小');
 else c=ob.Ldc;
-c+='<br><span class="gz-day">'+ob.Lday2+'</span>';
+c='<span class="lunar-day">'+c+'</span><br><span class="gz-day">'+ob.Lday2+'</span>';
 if(ob.yxmc=="朔")isM='<font color=#505000>●</font>';
 if(ob.yxmc=="望")isM='<font color=#F0B000>●</font>';
 if(ob.yxmc=="上弦")isM='<font color=#F0B000>◑</font>';

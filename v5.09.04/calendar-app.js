@@ -606,8 +606,14 @@ function showPage(pg){
 
 function tools(){
   var ob=document.all.tools.style;
-  if(ob.display=="none") ob.display="block";
-  else ob.display="none";
+  var shell=document.querySelector('.top-shell');
+  if(ob.display=="none"){
+    ob.display="block";
+    if(shell) shell.classList.add('is-menu-open');
+  } else {
+    ob.display="none";
+    if(shell) shell.classList.remove('is-menu-open');
+  }
 }
 
 function readme(){
@@ -1084,4 +1090,3 @@ function K_show(f){
 }
 
 function N_uA(){var a=navigator.userAgent;out.innerHTML='&nbsp;'+a;}
-
