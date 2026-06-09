@@ -358,7 +358,7 @@ body {
  }
  .top-control-group .meta {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px 8px;
   align-items: baseline;
   min-width: 0;
@@ -373,21 +373,24 @@ body {
  }
  #Sel2 + .meta {
   grid-column: 1 / -1;
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+ }
+ #Sel2 + .meta::-webkit-scrollbar { display: none; }
+ #Cal_zdzb {
+  flex: 0 1 auto;
+  min-width: 0;
   white-space: nowrap;
  }
- #Cal_zdzb {
-  white-space: normal;
-  overflow-wrap: anywhere;
- }
+ #Clock1 { white-space: nowrap; }
  @media (max-width: 980px) {
   .top-selector-grid {
    grid-template-columns: 1fr;
   }
   .top-control-group.location-group {
    grid-template-columns: 150px minmax(240px, 1fr);
-  }
-  #Sel2 + .meta {
-   white-space: normal;
   }
  }
  #tools {

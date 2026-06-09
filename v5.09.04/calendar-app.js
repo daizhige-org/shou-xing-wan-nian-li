@@ -699,7 +699,7 @@ function show_clock(t){ //显示时钟,传入日期对象
   var v  = Sel_dq.rg;
   var jd = t/86400000-10957.5 + h/24; //J2000起算的儒略日数(当地时间)
 
-  Clock1.innerHTML = t.toLocaleString2();
+  Clock1.innerHTML = airportLocalTimeString(t);
 
   if(v){
    var y1 = JD.Y, y2=y1; //该时所在年份
@@ -714,6 +714,28 @@ function show_clock(t){ //显示时钟,传入日期对象
   Clock2.innerHTML = (JD.D>9?JD.D:'0'+JD.D)+'日 '+(JD.h>9?JD.h:'0'+JD.h)+':'+(JD.m>9?JD.m:'0'+JD.m)+':'+(int2(JD.s)>9?int2(JD.s):'0'+int2(JD.s))+rg; //为了与clock1同步,秒数取整而不四舍五入
 }
 
+function airportLocalTimeString(t){
+  var timeZone = Sel2.timeZone;
+  if(!timeZone) return t.toLocaleString2();
+  try{
+    var parts = new Intl.DateTimeFormat('zh-CN-u-ca-gregory', {
+      timeZone: timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(t);
+    var ob = {}, i;
+    for(i=0;i<parts.length;i++) if(parts[i].type!='literal') ob[parts[i].type]=parts[i].value;
+    return ob.year+'年'+ob.month+'月'+ob.day+'日 '+ob.hour+':'+ob.minute+':'+ob.second;
+  }catch(e){
+    return t.toLocaleString2();
+  }
+}
+
 /****************
 地理经纬度选择的页面控制函数
 ****************/
@@ -724,11 +746,12 @@ function change2(){
   if(!airport) return;
   var v = { J: airport.lon/180*Math.PI, W: airport.lat/180*Math.PI };
   Sel2.vJ = v.J; Sel2.vW = v.W;
+  Sel2.timeZone = airport.timeZone || '';
   Cb_J.value=(airport.lon-0).toFixed(6), Cb_W.value=(airport.lat-0).toFixed(6);
   Cf_J.value = Cd_J.value = Cp9_J.value = Cb_J.value;
   Cf_W.value = Cd_W.value = Cp9_W.value = Cb_W.value;
   Cp11_J.value = Cb_J.value
-  Cal_zdzb.innerHTML = code + ' ' + airport.city + '　经度 '+rad2str2(v.J) + ' 纬度 '+rad2str2(v.W);
+  Cal_zdzb.innerHTML = '经度 '+rad2str2(v.J) + ' 纬度 '+rad2str2(v.W) + (airport.timeZone ? ' 时区 '+airport.timeZone : '');
   showMessD(-2);
   storageL.setItem('AirportCountryIndexV3',Sel1.selectedIndex,1000);
   storageL.setItem('AirportCodeV3',code,1000);
@@ -778,7 +801,8 @@ function initAirportSelectors(){
       city: airport.city || '',
       country: country,
       lat: airport.lat-0,
-      lon: airport.lon-0
+      lon: airport.lon-0,
+      timeZone: airportTimeZone(airport.lat-0, airport.lon-0)
     };
     if(!airportGroups[country]){
       airportGroups[country] = [];
@@ -788,6 +812,11 @@ function initAirportSelectors(){
   }
   airportCountries.sort(airportCountrySort);
   for(i=0; i<airportCountries.length; i++) airportGroups[airportCountries[i]].sort(airportSort);
+}
+function airportTimeZone(lat, lon){
+  if(typeof tzlookup!='function') return '';
+  try{ return tzlookup(lat, lon); }
+  catch(e){ return ''; }
 }
 function selectedIndexOrFallback(savedIndex, count, fallback){
   if(savedIndex===null || savedIndex===undefined || savedIndex==='') return fallback;
