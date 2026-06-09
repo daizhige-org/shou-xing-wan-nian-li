@@ -616,8 +616,39 @@
 <script language="javascript">
 function trim(s){return s.replace(/(^\s*)|(\s*$)/g,"");}
 Date.prototype.toLocaleString2=function(){return this.getFullYear()+"年"+(this.getMonth()>8?(this.getMonth()+1):'0'+(this.getMonth()+1))+"月"+(this.getDate()>9?this.getDate():'0'+this.getDate())+"日 "+(this.getHours()>9?this.getHours():'0'+this.getHours())+":"+(this.getMinutes()>9?this.getMinutes():'0'+this.getMinutes())+":"+(this.getSeconds()>9?this.getSeconds():'0'+this.getSeconds());};
-function year2Ayear(c){var y=String(c).replace(/[^0-9Bb\*-]/g,'');var q=y.substr(0,1);if(q=='B'||q=='b'||q=='*'){y=1-y.substr(1,y.length);if(y>0){alert('通用纪法的公元前纪法从B.C.1年开始。并且没有公元0年');return -10000;}}else y-=0;if(y<-4712)alert('公元前4713年之前的历算不准确！');if(y>9999)alert('公元9999年之后的历算不准确！');return y;}
+function year2Ayear(c){var y=String(c).replace(/[^0-9Bb\*-]/g,'');var q=y.substr(0,1);if(q=='B'||q=='b'||q=='*'){y=1-y.substr(1,y.length);if(y>0){alert('通用纪法的公元前纪法从BCE 1年开始。并且没有公元0年');return -10000;}}else y-=0;if(y<-4712)alert('公元前4713年之前的历算不准确！');if(y>9999)alert('公元9999年之后的历算不准确！');return y;}
 function Ayear2year(y){y-=0;if(y<=0)return 'B'+(-y+1);return ''+y;}
+function normalizeYearInput(ob){
+ if(!ob)return true;
+ var raw=trim(String(ob.value));
+ if(raw==='')return true;
+ var cleaned=raw.replace(/[^0-9Bb\*-]/g,'');
+ if(cleaned==='0'||cleaned==='-0'){
+  ob.value=ob.getAttribute('data-last-valid-year')||'1';
+  return false;
+ }
+ if(/^-\d+$/.test(cleaned)){
+  ob.value='B'+cleaned.substr(1);
+ }else if(/^\*\d+$/.test(cleaned)){
+  ob.value='B'+cleaned.substr(1);
+ }else if(/^b\d+$/i.test(cleaned)){
+  ob.value='B'+cleaned.substr(1);
+ }
+ ob.setAttribute('data-last-valid-year',ob.value);
+ return true;
+}
+function normalizeYearInputs(){
+ var ids='Cal_y,Cp2_y,Cb_y,Cc_y,Cd_y,Ce_y,Cf_y,Cp8_y,Cp9_y,Cp10_y,Cml_y,GJ1_y,GJ1_y2'.split(',');
+ for(var i=0;i<ids.length;i++){
+  var ob=document.getElementById(ids[i]);
+  if(!ob)continue;
+  normalizeYearInput(ob);
+  ob.onfocus=function(){this.setAttribute('data-last-valid-year',this.value);};
+  ob.oninput=function(){var v=trim(String(this.value));if(v==='0'||v==='-0'||/^-\d+$/.test(v))normalizeYearInput(this);};
+  ob.onchange=function(){normalizeYearInput(this);};
+  ob.onblur=function(){normalizeYearInput(this);};
+ }
+}
 function timeStr2hour(s){var a,b,c;s=String(s).replace(/[^0-9:\.]/g,'');s=s.split(':');if(s.length==1)a=s[0].substr(0,2)-0,b=s[0].substr(2,2)-0,c=s[0].substr(4,2)-0;else if(s.length==2)a=s[0]-0,b=s[1]-0,c=0;else a=s[0]-0,b=s[1]-0,c=s[2]-0;return a+b/60+c/3600;}
 var storageL={
 existStorage:function (){return window.Storage&&window.localStorage&&window.localStorageinstanceofStorage;},
@@ -1079,9 +1110,8 @@ var i,j,c,c2,cr="",n=6,isM;
 var ob;
 this.yueLiCalc(By,Bm);
 c=this.nianhao+' 开元'+this.Ly+'年〖'+this.ShX+'年〗';
-if(c.length>33)c='<span style="font-size:12px">'+c+'</span>';
-else c='<span style="font-size:16px;font-weight:bold">'+c+'</span>';
-var ta0='<tr><td colspan=7 style="background-color:#0000A0;color:#FFFF00">'+c+'</td></tr>';ta0+='<tr>'+'<td'+sty_head+'width="%14" height=24><a title="日，太阳">日</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="月，太阴">一</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="火，荧惑">二</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="水，太辰">三</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="木，太岁">四</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="金，太白">五</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="土，太填">六</a></td></tr>';
+c='<span style="font-size:16px;font-weight:bold">'+c+'</span>';
+var ta0='<tr><td colspan=7 style="background-color:#0000A0;color:#FFFF00;overflow:visible;white-space:nowrap">'+c+'</td></tr>';ta0+='<tr>'+'<td'+sty_head+'width="%14" height=24><a title="日，太阳">日</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="月，太阴">一</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="火，荧惑">二</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="水，太辰">三</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="木，太岁">四</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="金，太白">五</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="土，太填">六</a></td></tr>';
 for(i=0;i<this.dn;i++){
 ob=this.lun[i];
 if(!i){for(j=0;j<this.w0;j++)cr+='<td'+sty_body+'></td>';}
@@ -1102,7 +1132,7 @@ if(ob.d0==curJD)cr+='<td id="Cal_day_'+i+'" class="date-cell is-selected" onclic
 else cr+='<td id="Cal_day_'+i+'" class="date-cell" onclick="showMessD('+i+')"'+sty_body+'width="14%">'+c2+'<br>'+isM+c+'</td>';
 var crms='<td colspan=5 align=center><font color=#FF6666><a title="'
 +'按住ctrl键不放，可保持显示该日信息摘要。'
-+'"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询B.C4713至9999年，<b>B.C722年以后为实历</b></a></font></td>';
++'"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询BCE 4713至9999年，<b>BCE 722年以后为实历</b></a></font></td>';
 if(i==lun.dn-1&&n==1&&ob.week<2){for(j=0;j<1-ob.week;j++)cr+='<td'+sty_body+'></td>';cr+=crms;}
 else if(i==lun.dn-1){for(j=0;j<6-ob.week;j++)cr+='<td'+sty_body+'></td>';}
 if(i==this.dn-1||ob.week==6)ta0+='<tr>'+cr+'</tr>',cr="",n--;}
@@ -1190,7 +1220,7 @@ draw2:function(F){this.lineArr(F.p3,'#8080F0');this.lineArr(F.p1,'#000000');this
 function showHelp(f){
 var s;
 if(f==0){help.innerHTML='',help.style.display='none';return;}
-if(f==1)s='<span class="cua"><b>[软件用途]</b><br>　　为纪念2009.07.22长江大日食，本历大量增强日月食等天象计算功能，该年7月之后本历由《寿星万年历》改名为《寿星天文历》。<br>　　本软件是一款精准的年代跨度大的天文历法工具，可作为一般的实用日历工具，对史学工作者、历算工作者、天文爱好者均有较大的参考价值。本软件开放所有源代码，供爱好者学习参考。<br>　　本软件可以精确计算日月坐标、日月食、日月升降等。参见原版源代码包，可取得本软件更详细的说明文档。<br>　　本软件受到<a href="http://www.nongli.net/">中华农历网</a>、命理相关论坛上的网友以及中科院有关学者广泛好评，是一款值得信赖的天文万年历。<b><font color=red>在网络上开放源代码后，有“春光、浪淘沙、易子、郑彬、ldlcau、netghost、叶风扬(风羲)、chwc”等等前后共数十人参与调试。正是因他们的热心参与，才使得本历的数据准确可靠。在此感谢各位同好！软件代码较长，涉及年代跨度大，难免会存在一些错误或欠妥之处，欢迎大家批评指正，本人将及时修补。</font></b><br><br><b>[软件说明]</b><br>　　1、文件说明：<b><font color=red>寿星</font><font color=green>天文历</font><font color=blue>风羲版</font></b>仅发布(单文件)网页版，由叶风扬(风羲)基于(原版)寿星天文历修改而成。本版(V5.09.04)相较于原版(V5.09)，主要修改有：将[日月食]表二中的方位角改为以正北为0°，正东为90°的通用表达方式；将公元前2517年1月3日定为干支纪年的起点；优化排版，使软件在跨平台环境都有较好的显示效果；以 ⚆ 标示<b>时节</b>，以 ⊙ 标示<b>中气</b>；补充了一些节日、纪念日。其他诸多修改细节不一一赘述。<br>　　2、原版源代码使用 Windows 自带的“记事本”编写，软件调试使用 IE6.0，EXE文件使用 eBook Edit Pro 软件对HTML文件编译而成，软件图标使用 IconXP_3.1 制作。<b><font color=blue>风羲版</font></b>源代码使用开源软件 <a title="已更新为：MadEdit-Mod" href="https://github.com/LiMinggang/madedit-mod/">MadEdit</a> 编写，调试使用 IE8(Windows) 和 Chromium(Linux)。<b><font color=blue>风羲版</font></b>所做修改可作为意见建议理解，原作者可任意采用。代码版权仍归原作者所有，修订者不承担任何责任和义务。<br>　　3、显示某日的信息摘要后，如果按住ctrl键不放，再将鼠标移出日历区，即可保持该日信息摘要不变。<br>　　4、万年历中有的地方使用“天文纪年”，有的地方使用“传统纪年”，差别在公元前。“天文纪年”用0和负数表示公元前的年份；传统纪年用BC表示，且没有公元0年。软件的传统公元前纪年法是前面加一个B或b或*字符。例如输入公元前212年的方法是 B212 或 *212 或 -211 。<br>　　5、你可以随意使用本程序中的算法及数据。如果在你自己开发的软件中使用了本程序的核心算法及数据，应申明“数据或算法来源于寿星天文历”；也可以不申明，但不得申明为其它来源。<br>　　6、更多信息请参见官方发布的源代码包：<a title="中华农历论坛 → 知识讨论区 → 历法知识 → 寿星万年历" href="http://bbs.nongli.net/dispbbs_2_14995.html">官方发布</a> <a title="官方原版源代码包" href="https://pan.baidu.com/s/1ZzXpKgv7rpINBC8MF5bbHQ?pwd=4idp">寿星天文历V5.09</a>，内有详细文档。<br>　　7、设计：许剑伟 ☎:13850262218 ✉:<a title="给 许剑伟 写封 E-Mail 吧 ..." href="mailto:xunmeng04@163.com">xunmeng04@163.com</a>，2009年7月1日，于家中。<br>　　　 修订：风羲 ✉:<a title="给 风羲 写封 E-Mail 吧 ..." href="mailto:tyfrlj@qq.com">tyfrlj@qq.com</a>，2010年7月11日，于杭州家中(<font color=blue>風羲伏築</font>)。</span>';
+if(f==1)s='<span class="cua"><b>[软件用途]</b><br>　　为纪念2009.07.22长江大日食，本历大量增强日月食等天象计算功能，该年7月之后本历由《寿星万年历》改名为《寿星天文历》。<br>　　本软件是一款精准的年代跨度大的天文历法工具，可作为一般的实用日历工具，对史学工作者、历算工作者、天文爱好者均有较大的参考价值。本软件开放所有源代码，供爱好者学习参考。<br>　　本软件可以精确计算日月坐标、日月食、日月升降等。参见原版源代码包，可取得本软件更详细的说明文档。<br>　　本软件受到<a href="http://www.nongli.net/">中华农历网</a>、命理相关论坛上的网友以及中科院有关学者广泛好评，是一款值得信赖的天文万年历。<b><font color=red>在网络上开放源代码后，有“春光、浪淘沙、易子、郑彬、ldlcau、netghost、叶风扬(风羲)、chwc”等等前后共数十人参与调试。正是因他们的热心参与，才使得本历的数据准确可靠。在此感谢各位同好！软件代码较长，涉及年代跨度大，难免会存在一些错误或欠妥之处，欢迎大家批评指正，本人将及时修补。</font></b><br><br><b>[软件说明]</b><br>　　1、文件说明：<b><font color=red>寿星</font><font color=green>天文历</font><font color=blue>风羲版</font></b>仅发布(单文件)网页版，由叶风扬(风羲)基于(原版)寿星天文历修改而成。本版(V5.09.04)相较于原版(V5.09)，主要修改有：将[日月食]表二中的方位角改为以正北为0°，正东为90°的通用表达方式；将公元前2517年1月3日定为干支纪年的起点；优化排版，使软件在跨平台环境都有较好的显示效果；以 ⚆ 标示<b>时节</b>，以 ⊙ 标示<b>中气</b>；补充了一些节日、纪念日。其他诸多修改细节不一一赘述。<br>　　2、原版源代码使用 Windows 自带的“记事本”编写，软件调试使用 IE6.0，EXE文件使用 eBook Edit Pro 软件对HTML文件编译而成，软件图标使用 IconXP_3.1 制作。<b><font color=blue>风羲版</font></b>源代码使用开源软件 <a title="已更新为：MadEdit-Mod" href="https://github.com/LiMinggang/madedit-mod/">MadEdit</a> 编写，调试使用 IE8(Windows) 和 Chromium(Linux)。<b><font color=blue>风羲版</font></b>所做修改可作为意见建议理解，原作者可任意采用。代码版权仍归原作者所有，修订者不承担任何责任和义务。<br>　　3、显示某日的信息摘要后，如果按住ctrl键不放，再将鼠标移出日历区，即可保持该日信息摘要不变。<br>　　4、万年历中有的地方使用“天文纪年”，有的地方使用“传统纪年”，差别在公元前。“天文纪年”用0和负数表示公元前的年份；传统纪年用BCE 表示，且没有公元0年。软件的传统公元前纪年法是前面加一个B或b或*字符。例如输入公元前212年的方法是 B212 或 *212 或 -211 。<br>　　5、你可以随意使用本程序中的算法及数据。如果在你自己开发的软件中使用了本程序的核心算法及数据，应申明“数据或算法来源于寿星天文历”；也可以不申明，但不得申明为其它来源。<br>　　6、更多信息请参见官方发布的源代码包：<a title="中华农历论坛 → 知识讨论区 → 历法知识 → 寿星万年历" href="http://bbs.nongli.net/dispbbs_2_14995.html">官方发布</a> <a title="官方原版源代码包" href="https://pan.baidu.com/s/1ZzXpKgv7rpINBC8MF5bbHQ?pwd=4idp">寿星天文历V5.09</a>，内有详细文档。<br>　　7、设计：许剑伟 ☎:13850262218 ✉:<a title="给 许剑伟 写封 E-Mail 吧 ..." href="mailto:xunmeng04@163.com">xunmeng04@163.com</a>，2009年7月1日，于家中。<br>　　　 修订：风羲 ✉:<a title="给 风羲 写封 E-Mail 吧 ..." href="mailto:tyfrlj@qq.com">tyfrlj@qq.com</a>，2010年7月11日，于杭州家中(<font color=blue>風羲伏築</font>)。</span>';
 if(f==2)s='　1、图表中，方位角0°为正北，90°为正东，180°为正南，270°为正西；图中，东经、北纬为正，西经、南纬为负。<br>'+'　2、钩上“北/南”，图幅为正北视角，不打钩则是正南视角。该选项是站心坐标选项，在启用大地坐标模式时失效。<br>'+'　3、日食放大图中，红圆为太阳，黄圆为月亮，它们纵向距离是赤纬差，横向则是赤经差,左东右西。(均不含大气折射修正)。<br>'+'　4、月食放大图中，深黑圆是地球本影在距离地心R处的截面，R是该时刻地月质心距。淡黑圆是地球半影，定义方式与本影的相似。月食发生时，还会出现一个小灰圆，表示月亮，其大小决定于月亮的地心视半径。图中影子中心与月亮中心的纵向差为它们的赤纬差，横向差为赤经差，左东右西，月东行。不考虑地标对月食的影响。<br>'+'　5、钩上“UTC/TD”，表示当前输入的是地方时间，不打钩则是力学时。<br>'+'　6、日食发生时，图中可能会出现一个小三角形，它的顶角表示月影轴与大地面的交点，在该位置上此刻发生中心食。软件没有直接计算显示该处发生的是全食还是环食，把该处地标输入，切换到食心视角，重新计算即可精确判断。<br>'+'　7、钩上“NASA”则使用保守日月边缘，结果与NASA网站提供的数据相同。<br>'+'　8、钩上“实时”后点击[现在]启用实时模式，取消勾选即停用实时模式。实时模式刷新率较高，故框内时间比页面时间刷新略早。';
 if(f==3){s='';}
 if(f==4){s='　1、<b>黄经一、黄纬一：</b>日心当日黄道平分点坐标，含有岁差，不含章动和光行时改正；坐标中心建立在日心，x轴指向当日平春分点，z轴垂直当日黄道面，y轴方向矢等于z叉乘x。<br>'+'　2、<b>视赤经、视赤纬：</b>地心当日赤道真分点坐标，含有岁差，含有章动和光行时改正；坐标中心平移到地心(周年运动视差改正,地球公转相关)，x轴指向当日真春分点，z轴垂直当日赤道面，y轴方向矢等于z叉乘x。视黄经、视黄纬也是视坐标，不过坐标轴基面是黄道面而不是赤道面。<br>'+'　3、<b>站赤经、站赤纬：</b>站心当日赤道真分点坐标，含有岁差，含有章动和光行时改正；坐标中心平移到观测站(周日运动视差改正,地球自转相关)，x轴指向当日真春分点，z轴垂直当日赤道面，y轴方向矢等于z叉乘x。<br>'+'　4、<b>距离：</b>现以伽利略时空观解释它。以太阳系质心(SSB)作为坐标原点，并以遥远的星系作为坐标轴的方向创建的坐标系是一个比较理想的惯性坐标系，当我们把坐标中心平移到地心，并假想某瞬间与SSB保持相对静止或匀速动动，这样的坐标系仍然是惯性系。此类坐标系中，牛顿定律可以直接使用。坐标系中，两物体的“静止距离”就是牛顿定律应用所需的距离。当然，天体在运动，你找不到静止的时刻，所以人们很早就引入了“某一刻、某一瞬间距离”的概念，可理解为“瞬间相对惯性系静止距离”。用光直线构成的视差三角可以直接测量距离，然而光无法瞬时传播，所以得不到所要的瞬间距离，需要进行修正。软件中，<b>日心距、地心距</b>是“瞬间静止距离”，“光行距”指在惯性坐标中（如SSB坐标）“看到”光线离开天体，并在t时刻与地心观测者相遇，此间光行的距离为光行距。设光行时间为T，光速为c，光行距为D，显然，t-T时刻天体的出的光，在t时刻接收，所以软中用t-T时刻天体位置与t时刻观测位置的差值代表光行距D。计算前，T是个估值，不必很精确，得到T后就可算出D。如果认为D不够精确，可用D/c重算T，进而再次算出D，但这已经应用了光速不变原理，更严格精确的计算应采用相对论原理，但已经达到本软件星历的极限精度，没有必要考虑相对论变换。<b>视距离</b>指t-T时刻的地心距，它同样隐藏着相对性原理。<br>'+'　5、<b>方位角</b>从正南开始向西测量，即地平经圈起点在正南，正南为0°，正西为90°，正北180°，正东270°；<b>高度角</b>指天体在地平坐标中的纬度，在真高度角大于零时，对高度角进行了大气折射修正。<br>'+'　6、星历基于VSOP87(fit to DE200)，进行了截断处理，并适当与DE405拟合修正。<br>'+'　7、J2000+-500年精度(d = 10^-6AU ; J2000+-4千年范围内精度低数倍)：<br>'+'　　<b>星体  黄经　　 黄纬　距离，　星体  黄经　　 黄纬　距离</b><br>'+'　　地球 0.1角秒 0.1角秒 0.1d，　水星 0.2角秒 0.2角秒 0.2d<br>'+'　　金星 0.2角秒 0.2角秒 0.2d，　火星 0.5角秒 0.5角秒 1.0d<br>'+'　　木星 0.5角秒 0.5角秒 3.0d，　土星 0.5角秒 0.5角秒 5.0d<br>'+'　　天王 1.0角秒 1.0角秒 20 d，　海王 1.0角秒 1.0角秒 40d<br>'+'　<b>精度比对(2008-Jan-01 00:00 TT 火星)</b><br>'+'　JPL　　视赤经 05h 59m 27.4967s 视赤纬+26°56′27.538″ 光行距 0.607248116601418 AU<br>'+'　本软件 视赤经 05h 59m 27.50s 　视赤纬 26°56′27.55″　光行距 0.60724808 AU<br>'+'　　　　　误差　　　　　 0.0033s　　　　　　　 0.012″　　　　0.00000003 AU<br>';}
@@ -1668,8 +1698,9 @@ UTC/TD<input id="Cf_ut" type="checkbox" checked="">
 </td></tr>
 
 <!--版权区-->
-<tr><td class="dTop2" colspan="2" align="center">许剑伟(福建莆田第十中学)保留版权 © 2008-2025<br>
-原版由郑彦山(黑龙江双鸭山)增补制作（2014-2016）、叶风扬(风羲) V5.09.04 基于原版寿星天文历修改。本页面由 frankslin 基于「风羲版 V5.09.04」进一步修改（2026）。</td></tr>
+<tr><td class="dTop2" colspan="2" align="center">原版制作：许剑伟(福建莆田第十中学) © 2008-2025<br>
+郑彦山(黑龙江双鸭山)增补制作(2014-2016)；叶风扬(风羲) 基于上述版本寿星天文历修改。<br>
+本页面由 frankslin 基于「<a href="http://bbs.nongli.net/dispbbs_2_14995_0_128.html" target="_blank">风羲版 V5.09.04</a>」进一步修改（2026）。</td></tr>
 
 </tbody></table>
 
@@ -2307,19 +2338,20 @@ function set_date_screen(fw){ //把当前时间置于屏幕的便入框之中
  JD.setFromJD(curJD+J2000);
 
  if(!fw||fw==1){
-  Cml_y.value = JD.Y;
+  Cml_y.value = Ayear2year(JD.Y);
   Cml_m.value = JD.M;
   Cml_d.value = JD.D;
   Cml_his.value = JD.h+':'+JD.m+':'+JD.s.toFixed(0);
  }
 
  if(!fw||fw==2){
-  Cal_y.value = JD.Y;
+  Cal_y.value = Ayear2year(JD.Y);
   Cal_m.value = JD.M;
  }
  curJD=int2(curJD+0.5);
 }
 set_date_screen(0);
+normalizeYearInputs();
 
 /****************
 外地时间选择
