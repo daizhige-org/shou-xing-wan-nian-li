@@ -336,6 +336,18 @@
   color: var(--text);
   vertical-align: top;
  }
+ #Cal2 td.date-cell {
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+ }
+ #Cal2 td.date-cell:hover {
+  border-color: #bfdbfe;
+  background: var(--info-bg);
+ }
+ #Cal2 td.date-cell.is-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+ }
  #Cal2 tr:first-child td {
   height: auto;
   padding: 8px;
@@ -368,13 +380,18 @@
   font-size: 12px;
  }
  #Cal4,
+ #Cal_day,
  #Cal5 {
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
  }
+ #Cal_day {
+  margin-bottom: 12px;
+ }
  #Cal4:empty,
+ #Cal_day:empty,
  #Cal5:empty {
   display: none;
  }
@@ -986,12 +1003,10 @@ if(ob.yxmc=="下弦")isM='<font color=#F0B000>◐</font>';
 if(ob.jqmc){if(ob.jqmc.indexOf("⊙") != -1){isM+='<font color=#00C000>⊙</font>';}else{isM+='<font color=#00C000>⚆</font>';}}c=c.replace(/[⚆⊙]/g, "");
 if(ob.Fjia)c2=sty_date2;
 else c2=sty_date;
-c2+=' onmouseover="showMessD('+i+')"';
-c2+=' onmouseout ="showMessD(-1)"';
 c2='<span'+c2+'>'+ob.d+'</span>';
 if(ob.d0==curJD)c2='<span'+sty_cur+'>'+c2+'</span>';
-if(ob.d0==curJD)cr+='<td'+sty_cur2+'width="14%">'+c2+'<br>'+isM+c+'</td>';
-else cr+='<td'+sty_body+'width="14%">'+c2+'<br>'+isM+c+'</td>';
+if(ob.d0==curJD)cr+='<td id="Cal_day_'+i+'" class="date-cell is-selected" onclick="showMessD('+i+')"'+sty_cur2+'width="14%">'+c2+'<br>'+isM+c+'</td>';
+else cr+='<td id="Cal_day_'+i+'" class="date-cell" onclick="showMessD('+i+')"'+sty_body+'width="14%">'+c2+'<br>'+isM+c+'</td>';
 var crms='<td colspan=5 align=center><font color=#FF6666><a title="'
 +'按住ctrl键不放，可保持显示该日信息摘要。'
 +'"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询B.C4713至9999年，<b>B.C722年以后为实历</b></a></font></td>';
@@ -1195,6 +1210,7 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
 <!--月历表-->
 <tr id="page1">
  <td width="35%" valign="middle" style="line-height: 150%" class="dRig">
+  <!--日期摘要--><div align="center" id="Cal_day"></div><br>
   <!--日月出没--><div align="center" id="Cal5"></div><br>
   <!--月相节气--><div align="center" id="Cal4"></div>
  </td>
@@ -1566,7 +1582,8 @@ UTC/TD<input id="Cf_ut" type="checkbox" checked="">
 </td></tr>
 
 <!--版权区-->
-<tr><td class="dTop2" colspan="2" align="center">许剑伟(福建莆田第十中学)保留版权 © 2008-2025</td></tr>
+<tr><td class="dTop2" colspan="2" align="center">许剑伟(福建莆田第十中学)保留版权 © 2008-2025<br>
+原版由郑彦山(黑龙江双鸭山)增补制作（2014-2016）、叶风扬(风羲) V5.09.04 基于原版寿星天文历修改。本页面由 frankslin 基于「风羲版 V5.09.04」进一步修改（2026）。</td></tr>
 
 </tbody></table>
 
@@ -2358,38 +2375,42 @@ function RTS1(jd,vJ,vW,tz){
 /**********************
 日历(某日)信息页面生成
 **********************/
+function dayMessHTML(ob){
+ var s  = '公元'+Ayear2year(ob.y).replace(/[B]/g, "前") + '年' + ob.m + '月' + ob.d + '日';
+ s += '<br>阳历'+ob.Lyear2+'年 周' + JD.Weeks[ob.week] + ' ' + ob.XiZ;
+ s += '<br>'+ob.Lyear4+'年 '+ob.Lleap + ob.Lmc + '月' + (ob.Ldn>29?'大 ':'小 ') + ob.Ldc + '日';
+ s += '<br>开元'+ob.Lyear3+'年'+ob.Lmonth2+'月'+ob.Lday2+'日';
+ s += '<br>回历['+ob.Hyear+'年'+ob.Hmonth+'月'+ob.Hday+'日]';
+ s += '<br>JD '+(ob.d0+J2000)+'('+ob.d0+') ';
+ if(ob.yxmc) s += '<br>'+ob.yxmc+' '+ob.yxsj;
+ if(ob.jqmc) s += '<br>定'+ob.jqmc.slice(-2)+' '+ob.jqsj;
+ if(ob.A+ob.B+ob.C) s += '<br>';
+ if(ob.A)    s += ob.A +' ';
+ if(ob.B)    s += ob.B.replace(/[⚆⊙]/g, "") +' ';
+ if(ob.C)    s += ob.C;
+ return s;
+}
+
 function showMessD(n){ //显时本月第n日的摘要信息。调用前应先执月历页面生成，产生有效的lun对象
- if(event){ if(event.ctrlKey) return; }
  if(!lun.dn||n>=lun.dn) return;
  var vJ = Sel2.vJ-0, vW = Sel2.vW-0;
- if(n==-1){ //鼠标移出日期上方
-   Cal_pan.style.display = 'none';
-   Cal5.innerHTML = Cal5.bak;
+ if(n==-1) return;
+ if(n==-2){
+   n = 0;
+   for(var i=0;i<lun.dn;i++) if(lun.lun[i].d0==curJD){n=i;break;}
  }
- if(n==-2) Cal5.bak = Cal5.innerHTML = RTS1(curJD, vJ, vW, curTZ);
  if(n<0) return;
  //显示n指定的日期信息
  var ob = lun.lun[n];
  Cal5.innerHTML = RTS1(ob.d0, vJ, vW, curTZ);
- if(window.event && window.event.srcElement.tagName=='SPAN'){ //鼠标移过日期上方
-  s  = '公元'+Ayear2year(ob.y).replace(/[B]/g, "前") + '年' + ob.m + '月' + ob.d + '日'
-  s += '<br>阳历'+ob.Lyear2+'年 周' + JD.Weeks[ob.week] + ' ' + ob.XiZ;
-  s += '<br>'+ob.Lyear4+'年 '+ob.Lleap + ob.Lmc + '月' + (ob.Ldn>29?'大 ':'小 ') + ob.Ldc + '日';
-  s += '<br>开元'+ob.Lyear3+'年'+ob.Lmonth2+'月'+ob.Lday2+'日';
-  s += '<br>回历['+ob.Hyear+'年'+ob.Hmonth+'月'+ob.Hday+'日]';
-  s += '<br>JD '+(ob.d0+J2000)+'('+ob.d0+') ';
-  if(ob.yxmc) s += '<br>'+ob.yxmc+' '+ob.yxsj;
-  if(ob.jqmc) s += '<br>定'+ob.jqmc.slice(-2)+' '+ob.jqsj;
-  //else { if(ob.Ljq) s += '<br>'+ob.Ljq.slice(-2);}
-  if(ob.A+ob.B+ob.C) s += '<br>';
-  if(ob.A)    s += ob.A +' ';
-  if(ob.B)    s += ob.B.replace(/[⚆⊙]/g, "") +' ';
-  if(ob.C)    s += ob.C;
-  Cal_pan.style.display = 'block'; //先显示再传值屏幕流畅
-  Cal_pan_in.innerHTML = s;
-  Cal_pan.style.left = window.event.x+document.body.scrollLeft + ( (ob.week >3)? -180 : 20 );
-  Cal_pan.style.top  = window.event.y+document.body.scrollTop  - ( (ob.weeki<2)?    0 :100 );
+ Cal_day.innerHTML = dayMessHTML(ob);
+ if(Cal_pan) Cal_pan.style.display = 'none';
+ for(var j=0;j<lun.dn;j++){
+   var td=document.getElementById('Cal_day_'+j);
+   if(td) td.className = td.className.replace(/\bis-selected\b/g,'').replace(/\s+/g,' ').replace(/^\s|\s$/g,'');
  }
+ var cur=document.getElementById('Cal_day_'+n);
+ if(cur && cur.className.indexOf('is-selected')<0) cur.className += ' is-selected';
 }
 
 /**********************
