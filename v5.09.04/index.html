@@ -42,7 +42,7 @@
  center {
   display: block;
   width: min(1120px, calc(100vw - 32px));
-  margin: 24px auto 40px;
+  margin: 16px auto 32px;
   text-align: initial;
  }
  body > center > table,
@@ -271,7 +271,7 @@
   width: 100% !important;
  }
  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child > td {
-  padding: 14px 16px;
+  padding: 12px 16px;
   background: var(--surface) !important;
   border-bottom: 1px solid var(--border);
  }
@@ -301,9 +301,47 @@
  }
  body > center > table > tbody > tr > td > table:first-child > tbody > tr:nth-child(2) td,
  body > center > table > tbody > tr > td > table:first-child > tbody > tr:nth-child(3) td {
-  padding: 8px 16px;
+  padding: 8px 16px 10px;
   background: var(--surface-subtle);
   color: var(--muted);
+ }
+ .top-selector-grid {
+  display: grid;
+  grid-template-columns: minmax(400px, .85fr) minmax(0, 1.15fr);
+  gap: 8px 20px;
+  align-items: start;
+ }
+ .top-control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  min-width: 0;
+ }
+ .top-control-group select {
+  min-height: 30px;
+  margin: 0;
+ }
+ .top-control-group .meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  min-width: 0;
+  color: var(--muted);
+ }
+ #Sel_zhou { width: 112px; }
+ #Sel_dq { width: 180px; }
+ #Sel1 { width: 150px; }
+ #Sel2 { width: min(390px, 100%); flex: 1 1 280px; }
+ #Cal_zdzb {
+  white-space: normal;
+  overflow-wrap: anywhere;
+ }
+ @media (max-width: 980px) {
+  .top-selector-grid {
+   grid-template-columns: 1fr;
+  }
  }
  #tools {
   padding-top: 8px;
@@ -1162,38 +1200,25 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
 </tr>
 
 <tr><td width="100%">
-<table width="770" class="bd0" cellpadding="0" cellspacing="0">
-<tbody>
-<tr>
-
-<td>
-  <!--时区选择--><select id="Sel_zhou" onchange="change_zhou()"></select> <select id="Sel_dq" onchange="change_dq()"></select>
-  <!--外地时间--><span id="Sel_sqsm"></span>时间:<span id="Clock2" style="font-weight:bold;color:blue"></span>
-</td>
-
-<td align=right id="tools" style="display:none"><span class="cua">
+<div class="top-selector-grid">
+  <div class="top-control-group">
+    <!--时区选择--><select id="Sel_zhou" onchange="change_zhou()"></select><select id="Sel_dq" onchange="change_dq()"></select>
+    <span class="meta"><!--外地时间--><span id="Sel_sqsm"></span>时间:<span id="Clock2" style="font-weight:bold;color:blue"></span></span>
+  </div>
+  <div class="top-control-group">
+    <!--经纬选择--><select id="Sel1" onchange="change()"></select><select id="Sel2" onchange="change2()"></select>
+    <span class="meta"><!--经度纬度--><span id="Cal_zdzb"></span><!--地方时间-->地方时间:<span id="Clock1" style="color:red;font-weight:bold"></span></span>
+  </div>
+</div>
+<div align=right id="tools" style="display:none"><span class="cua">
 <a href="javascript:showPage(6)">天象</a>
 <a href="javascript:showPage(7)">恒星</a>
 <a href="javascript:showPage(8)">气朔</a>
 <a href="javascript:showPage(9)">升降</a>
 <a href="javascript:showPage(11)">工具</a>
 <a href="javascript:showPage(12)">常数</a>
-</span></td>
-
-</tr>
-</tbody>
-</table>
+</span></div>
 </td></tr>
-
-  <tr>
-  <td>
-  <!--经纬选择-->
-  <select id="Sel1" onchange="change(0)" style="width:80px"></select>
-  <select id="Sel2" onchange="change2()"></select>
-  <!--经度纬度--><span id="Cal_zdzb"></span>
-  <!--地方时间-->地方时间:<span id="Clock1" style="color:red;font-weight:bold"></span>
-  </td>
-  </tr>
 
 </tbody></table>
 
@@ -1591,6 +1616,7 @@ UTC/TD<input id="Cf_ut" type="checkbox" checked="">
  <div id=Cal_pan_in style="background-color:#3333A0;width:148;text-align:center;line-height:150%;color:#FFFFFF;display:block;padding:6px;opacity:0.9;-moz-opacity:0.9;filter:Alpha(opacity=90)"></div>
 </div>
 
+<script src="airports.js"></script>
 <script language="javascript">
 
 var lun = new Lunar(); //月历全局对象
@@ -2279,30 +2305,105 @@ function show_clock(t){ //显示时钟,传入日期对象
 地理经纬度选择的页面控制函数
 ****************/
 function change2(){
-  var i,v = new JWdecode( Sel2.options[Sel2.selectedIndex].value );
+  if(!Sel2.options.length) return;
+  var code = Sel2.options[Sel2.selectedIndex].value;
+  var airport = airportMap[code];
+  if(!airport) return;
+  var v = { J: airport.lon/180*Math.PI, W: airport.lat/180*Math.PI };
   Sel2.vJ = v.J; Sel2.vW = v.W;
-  Cb_J.value=(v.J/Math.PI*180).toFixed(6), Cb_W.value=(v.W/Math.PI*180).toFixed(6);
+  Cb_J.value=(airport.lon-0).toFixed(6), Cb_W.value=(airport.lat-0).toFixed(6);
   Cf_J.value = Cd_J.value = Cp9_J.value = Cb_J.value;
   Cf_W.value = Cd_W.value = Cp9_W.value = Cb_W.value;
   Cp11_J.value = Cb_J.value
-  Cal_zdzb.innerHTML = '经度 '+rad2str2(v.J) + ' 纬度 '+rad2str2(v.W);
+  Cal_zdzb.innerHTML = code + ' ' + airport.city + '　经度 '+rad2str2(v.J) + ' 纬度 '+rad2str2(v.W);
   showMessD(-2);
-  storageL.setItem('Sel1',Sel1.selectedIndex,1000);
-  storageL.setItem('Sel2',Sel2.selectedIndex,1000);
+  storageL.setItem('AirportCountryIndexV3',Sel1.selectedIndex,1000);
+  storageL.setItem('AirportCodeV3',code,1000);
 }
 function change(){
+  if(!Sel1.options.length) return;
   Sel2.length=0; 
-  var i, ob=JWv[ Sel1.options[Sel1.selectedIndex].value-0 ];
-  for(i=1; i<ob.length; i++)
-   addOp( Sel2, ob[i].substr(0,4), ob[i].substr(4,ob[i].length-4) );
+  var i, country=airportCountries[ Sel1.options[Sel1.selectedIndex].value-0 ];
+  var list = airportGroups[country] || [];
+  for(i=0; i<list.length; i++) addOp( Sel2, list[i].code, airportLabel(list[i]) );
   change2();
 }
+function airportLabel(ob){
+  var city = ob.city || ob.country || '';
+  var name = ob.name || '';
+  return ob.code + (city ? ' ' + city : '') + (name ? ' · ' + name : '');
+}
+function airportSort(a,b){
+  var ac = (a.city || '').toLowerCase(), bc = (b.city || '').toLowerCase();
+  if(ac<bc) return -1; if(ac>bc) return 1;
+  return a.code<b.code ? -1 : (a.code>b.code ? 1 : 0);
+}
+function airportCountrySort(a,b){
+  var priority = {'United States':0, 'Canada':1, 'China':2};
+  var pa = priority.hasOwnProperty(a) ? priority[a] : 99;
+  var pb = priority.hasOwnProperty(b) ? priority[b] : 99;
+  if(pa!==pb) return pa-pb;
+  if(a<b) return -1; if(a>b) return 1;
+  return 0;
+}
+function initAirportSelectors(){
+  var source = window.AIRPORTS || {};
+  airportMap = {};
+  airportCountries = [];
+  airportGroups = {};
+  var codes = [], code, airport, country, i;
+  for(code in source) if(source.hasOwnProperty(code)) codes.push(code);
+  codes.sort();
+  for(i=0; i<codes.length; i++){
+    code = codes[i];
+    airport = source[code];
+    if(!airport || isNaN(airport.lat) || isNaN(airport.lon)) continue;
+    country = airport.country || 'Unknown';
+    airportMap[code] = {
+      code: code,
+      name: airport.name || code,
+      city: airport.city || '',
+      country: country,
+      lat: airport.lat-0,
+      lon: airport.lon-0
+    };
+    if(!airportGroups[country]){
+      airportGroups[country] = [];
+      airportCountries.push(country);
+    }
+    airportGroups[country].push(airportMap[code]);
+  }
+  airportCountries.sort(airportCountrySort);
+  for(i=0; i<airportCountries.length; i++) airportGroups[airportCountries[i]].sort(airportSort);
+}
+function selectedIndexOrFallback(savedIndex, count, fallback){
+  if(savedIndex===null || savedIndex===undefined || savedIndex==='') return fallback;
+  savedIndex -= 0;
+  if(isNaN(savedIndex) || savedIndex<0 || savedIndex>=count) return fallback;
+  return savedIndex;
+}
+function optionIndexByValue(selectObj, value){
+  var i;
+  for(i=0; i<selectObj.options.length; i++) if(selectObj.options[i].value==value) return i;
+  return -1;
+}
+var airportMap = {}, airportCountries = [], airportGroups = {};
 var i;
-for(i=0;i<JWv.length;i++) addOp(document.all.Sel1,i,JWv[i][0]);
-var seI1 = storageL.getItem('Sel1');
-var seI2 = storageL.getItem('Sel2');
-Sel1.selectedIndex = seI1; change();
-Sel2.selectedIndex = seI2; change2();
+initAirportSelectors();
+for(i=0;i<airportCountries.length;i++) addOp(document.all.Sel1,i,airportCountries[i]);
+var seI1 = storageL.getItem('AirportCountryIndexV3');
+var seI2 = storageL.getItem('AirportCodeV3');
+var defaultCountry = airportCountries.indexOf('United States');
+if(seI2 && airportMap[seI2]) defaultCountry = airportCountries.indexOf(airportMap[seI2].country);
+if(defaultCountry<0) defaultCountry = 0;
+Sel1.selectedIndex = selectedIndexOrFallback(seI1, Sel1.options.length, defaultCountry); change();
+var defaultAirport = optionIndexByValue(Sel2, 'SEA');
+if(seI2) {
+  var savedAirport = optionIndexByValue(Sel2, seI2);
+  if(savedAirport>=0) defaultAirport = savedAirport;
+}
+if(defaultAirport<0) defaultAirport = 0;
+Sel2.selectedIndex = defaultAirport; change2();
 
 /**********************
 命理八字计算
