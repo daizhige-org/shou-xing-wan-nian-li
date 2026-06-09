@@ -686,9 +686,18 @@ function syncPageUrl(pg, replace){
 function syncActivePageUrl(replace){
   if(urlSyncEnabled) syncPageUrl(activePage, replace);
 }
+function updateTopNavActive(pg){
+  var tabs = document.querySelectorAll('.top-nav .nav-tab[data-page]'), i, page;
+  for(i=0;i<tabs.length;i++){
+    page = normalizePageParam(tabs[i].getAttribute('data-page'));
+    if(page==pg) tabs[i].classList.add('is-active');
+    else tabs[i].classList.remove('is-active');
+  }
+}
 function showPage(pg, skipUrl){
   pg = normalizePageParam(pg);
   activePage = pg;
+  updateTopNavActive(pg);
   if(!skipUrl) syncPageUrl(pg, false);
   showHelp(0); //关闭可能已打开的帮助页面
   Cal_pause.checked=true;
@@ -1086,6 +1095,8 @@ function showMessD(n, skipUrl){ //显时本月第n日的摘要信息。调用前
  selectedMonthDay = ob.d;
  Cal5.innerHTML = RTS1(ob.d0, vJ, vW, airportTimezoneOffsetHours(ob.y, ob.m, ob.d));
  Cal_day.innerHTML = dayMessHTML(ob);
+ refreshChineseMode(Cal5);
+ refreshChineseMode(Cal_day);
  if(Cal_pan) Cal_pan.style.display = 'none';
  for(var j=0;j<lun.dn;j++){
    var td=document.getElementById('Cal_day_'+j);
@@ -1110,6 +1121,8 @@ function getLunar(){ //月历页面生成
    lun.yueLiHTML(By,Bm,curJD);
    Cal2.innerHTML = lun.pg1;
    Cal4.innerHTML = lun.pg2;
+   refreshChineseMode(Cal2);
+   refreshChineseMode(Cal4);
   }
 
   if(selectedMonthDay>0 && selectedMonthDay<=lun.dn) showMessD(selectedMonthDay-1, true);
@@ -1145,6 +1158,7 @@ function getNianLi(dy){ //dy起始年份偏移数
  if(y<-10000) { alert('超出计算范围'); return; } //检查输入值
  if(Cp2_tg.checked) Cal7.innerHTML = '<br>　<b>'+Ayear2year(y)+'年</b><br>'+nianLiHTML(y,'')+'<br>';
  else               Cal7.innerHTML = '<br>　<b>'+Ayear2year(y)+'年</b><br>'+nianLi2HTML(y)+'<br>';
+ refreshChineseMode(Cal7);
  if(activePage==2) syncActivePageUrl(false);
 }
 function getNianLiN(){ //dy起始年份偏移数
@@ -1158,6 +1172,7 @@ function getNianLiN(){ //dy起始年份偏移数
   else               s += '<br>　<b>'+Ayear2year(y+i)+'年</b><br>'+nianLi2HTML(y+i);
  }
  Cal7.innerHTML = s+'<br>';
+ refreshChineseMode(Cal7);
  if(activePage==2) syncActivePageUrl(false);
 }
 
@@ -1277,3 +1292,203 @@ function K_show(f){
 }
 
 function N_uA(){var a=navigator.userAgent;out.innerHTML='&nbsp;'+a;}
+
+/**********************
+繁简转换
+**********************/
+var chineseMode = 'cn';
+var openccTextOriginals = new WeakMap();
+var openccConverter = null;
+var openccObserver = null;
+var openccApplying = false;
+var openccAttrNames = ['title', 'aria-label', 'placeholder'];
+var openccButtonTypes = { button:1, submit:1, reset:1 };
+var openccCustomDict = [
+  ['天文历', '天文曆'],
+  ['本历', '本曆'],
+  ['历算', '曆算'],
+  ['实历', '實曆']
+];
+
+function getSavedChineseMode(){
+  var params = new URLSearchParams(location.search);
+  var lang = params.get('lang');
+  if(lang=='tw' || lang=='cn') return lang;
+  try{
+    lang = storageL.getItem('ChineseModeV1') || localStorage.getItem('ChineseModeV1');
+  }catch(e){
+    lang = '';
+  }
+  return lang=='tw' ? 'tw' : 'cn';
+}
+
+function setSavedChineseMode(mode){
+  try{ storageL.setItem('ChineseModeV1', mode, 1000); }catch(e){}
+  try{ localStorage.setItem('ChineseModeV1', mode); }catch(e){}
+}
+
+function syncChineseModeUrl(){
+  if(!history || !history.replaceState) return;
+  var params = new URLSearchParams(location.search);
+  if(chineseMode=='tw') params.set('lang', 'tw');
+  else params.delete('lang');
+  var query = params.toString();
+  var nextUrl = location.pathname + (query ? '?' + query : '') + location.hash;
+  if(nextUrl != location.pathname + location.search + location.hash) history.replaceState(history.state, '', nextUrl);
+}
+
+function isOpenCCExcludedNode(node){
+  var el = node.nodeType==1 ? node : node.parentElement;
+  while(el){
+    if(el.classList && el.classList.contains('ignore-opencc')) return true;
+    if(/^(SCRIPT|STYLE|CODE|PRE|TEXTAREA)$/i.test(el.tagName)) return true;
+    el = el.parentElement;
+  }
+  return false;
+}
+
+function getOpenCCConverter(){
+  if(openccConverter) return openccConverter;
+  if(!window.OpenCC || !OpenCC.ConverterFactory || !OpenCC.Locale) return null;
+  openccConverter = OpenCC.ConverterFactory(
+    OpenCC.Locale.from.cn,
+    OpenCC.Locale.to.tw.concat([openccCustomDict])
+  );
+  return openccConverter;
+}
+
+function convertOpenCCTextNode(node, refreshOriginal){
+  if(isOpenCCExcludedNode(node)) return;
+  var original = openccTextOriginals.get(node);
+  if(original===undefined || refreshOriginal){
+    original = node.nodeValue;
+    openccTextOriginals.set(node, original);
+  }
+  var converter = chineseMode=='tw' ? getOpenCCConverter() : null;
+  var next = converter ? converter(original) : original;
+  if(node.nodeValue !== next) node.nodeValue = next;
+}
+
+function openccOriginalAttrs(el){
+  if(!el._openccOriginalAttrs) el._openccOriginalAttrs = {};
+  return el._openccOriginalAttrs;
+}
+
+function convertOpenCCAttr(el, name, refreshOriginal){
+  if(!el.hasAttribute || !el.hasAttribute(name)) return;
+  var originals = openccOriginalAttrs(el);
+  if(originals[name]===undefined || refreshOriginal) originals[name] = el.getAttribute(name);
+  var converter = chineseMode=='tw' ? getOpenCCConverter() : null;
+  var next = converter ? converter(originals[name]) : originals[name];
+  if(el.getAttribute(name) !== next) el.setAttribute(name, next);
+}
+
+function isOpenCCOwnTextMutation(node){
+  var original = openccTextOriginals.get(node), converter;
+  if(original===undefined) return false;
+  converter = getOpenCCConverter();
+  return !!converter && node.nodeValue === converter(original);
+}
+
+function isOpenCCOwnAttrMutation(el, name){
+  var originals = el._openccOriginalAttrs, converter;
+  if(!originals || originals[name]===undefined || !el.hasAttribute(name)) return false;
+  converter = getOpenCCConverter();
+  return !!converter && el.getAttribute(name) === converter(originals[name]);
+}
+
+function convertOpenCCElementAttrs(el, refreshOriginal){
+  var i, type;
+  if(isOpenCCExcludedNode(el)) return;
+  for(i=0;i<openccAttrNames.length;i++) convertOpenCCAttr(el, openccAttrNames[i], refreshOriginal);
+  type = (el.type || '').toLowerCase();
+  if(el.tagName=='INPUT' && openccButtonTypes[type]) convertOpenCCAttr(el, 'value', refreshOriginal);
+}
+
+function walkOpenCC(root){
+  var walker, node;
+  if(!root || isOpenCCExcludedNode(root)) return;
+  if(root.nodeType==3){
+    convertOpenCCTextNode(root, false);
+    return;
+  }
+  if(root.nodeType!=1 && root.nodeType!=9 && root.nodeType!=11) return;
+  if(root.nodeType==1) convertOpenCCElementAttrs(root, false);
+  walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+    acceptNode:function(node){
+      return isOpenCCExcludedNode(node) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  while((node = walker.nextNode())){
+    if(node.nodeType==3) convertOpenCCTextNode(node, false);
+    else convertOpenCCElementAttrs(node, false);
+  }
+}
+
+function refreshChineseMode(root){
+  if(chineseMode!='tw' || !getOpenCCConverter()) return;
+  openccApplying = true;
+  walkOpenCC(root || document.body);
+  if(openccObserver) openccObserver.takeRecords();
+  openccApplying = false;
+}
+
+function applyChineseMode(){
+  var button = document.getElementById('OpenCC_toggle');
+  var converterReady = !!getOpenCCConverter();
+  document.documentElement.lang = chineseMode=='tw' ? 'zh-Hant' : 'zh-Hans';
+  if(button){
+    button.value = chineseMode=='tw' ? '简' : '繁';
+    button.title = chineseMode=='tw' ? '切換簡體' : '切换繁体';
+    button.disabled = !converterReady;
+  }
+  if(chineseMode=='tw' && !converterReady) return;
+  openccApplying = true;
+  walkOpenCC(document.body);
+  if(openccObserver) openccObserver.takeRecords();
+  openccApplying = false;
+}
+
+function setChineseMode(mode, updateUrl){
+  chineseMode = mode=='tw' ? 'tw' : 'cn';
+  setSavedChineseMode(chineseMode);
+  if(updateUrl) syncChineseModeUrl();
+  applyChineseMode();
+}
+
+function toggleChineseMode(){
+  setChineseMode(chineseMode=='tw' ? 'cn' : 'tw', true);
+}
+
+function initChineseMode(){
+  chineseMode = getSavedChineseMode();
+  applyChineseMode();
+  if(window.MutationObserver){
+    openccObserver = new MutationObserver(function(records){
+      var i, j, record;
+      if(openccApplying || chineseMode!='tw') return;
+      openccApplying = true;
+      for(i=0;i<records.length;i++){
+        record = records[i];
+        if(record.type=='childList'){
+          for(j=0;j<record.addedNodes.length;j++) walkOpenCC(record.addedNodes[j]);
+        }else if(record.type=='characterData'){
+          convertOpenCCTextNode(record.target, !isOpenCCOwnTextMutation(record.target));
+        }else if(record.type=='attributes'){
+          if(isOpenCCOwnAttrMutation(record.target, record.attributeName)) convertOpenCCElementAttrs(record.target, false);
+          else convertOpenCCElementAttrs(record.target, true);
+        }
+      }
+      openccObserver.takeRecords();
+      openccApplying = false;
+    }).observe(document.body, {
+      childList:true,
+      subtree:true,
+      characterData:true,
+      attributes:true,
+      attributeFilter:['title', 'aria-label', 'placeholder', 'value']
+    });
+  }
+}
+
+initChineseMode();

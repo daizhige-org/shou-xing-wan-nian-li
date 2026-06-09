@@ -37,12 +37,13 @@
   </span>
 </td>
 <td align=right>
-  <input type="button" onclick="showPage(1)" value="月历">
-  <input type="button" onclick="showPage(2)" value="年历">
-  <input type="button" onclick="showPage(5)" value="星历">&nbsp;
-  <input type="button" onclick="showPage(3)" value="日月食">
-  <input type="button" onclick="Cal_rt.checked=false;showPage(10)" value="日食概略">
-  <input type="button" onclick="showPage(4)" value="地方食表">
+  <input type="button" class="nav-tab" data-page="1" onclick="showPage(1)" value="月历">
+  <input type="button" class="nav-tab" data-page="2" onclick="showPage(2)" value="年历">
+  <input type="button" class="nav-tab" data-page="5" onclick="showPage(5)" value="星历">&nbsp;
+  <input type="button" class="nav-tab" data-page="3" onclick="showPage(3)" value="日月食">
+  <input type="button" class="nav-tab" data-page="10" onclick="Cal_rt.checked=false;showPage(10)" value="日食概略">
+  <input type="button" class="nav-tab" data-page="4" onclick="showPage(4)" value="地方食表">
+  <input type="button" id="OpenCC_toggle" class="lang-toggle ignore-opencc" onclick="toggleChineseMode()" value="繁" title="切换繁简">
   <a title="更多工具"><input type="button" onclick="tools()" value="▼"></a>&nbsp;
   <a title="简要说明"><input type="button" onclick="readme()" value="?"></a>
 </td>
@@ -89,6 +90,7 @@
 <tr id="page1">
  <td width="35%" valign="middle" class="dRig summary-column">
   <!--日期摘要--><div align="center" id="Cal_day"></div><br>
+  <!--提示--><div align="center" id="Cal_tip"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询 BCE 4713 至 9999 年，<b>BCE 722 年以后为实历</b></div><br>
   <!--日月出没--><div align="center" id="Cal5"></div><br>
   <!--月相节气--><div align="center" id="Cal4"></div>
  </td>
@@ -175,7 +177,7 @@
   </tr></tbody></table>
  </td></tr>
 </tbody></table>
- </td>
+</td>
 </tr>
 
 <!--地方日食表-->
@@ -472,6 +474,7 @@ UTC/TD<input id="Cf_ut" type="checkbox" checked="">
 
 <script src="airports.js"></script>
 <script src="tz-lookup.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.3.2-next.0/dist/umd/full.js"></script>
 <script src="calendar-app.js"></script>
 
 </td></tr>

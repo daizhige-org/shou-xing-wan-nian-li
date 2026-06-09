@@ -327,6 +327,39 @@ body {
   background: var(--surface-subtle);
   color: var(--accent);
  }
+ .top-nav input.nav-tab {
+  border-radius: 8px;
+ }
+ .top-nav input.nav-tab.is-active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+  font-weight: 500;
+ }
+ .top-nav input.nav-tab.is-active:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+ }
+ .top-nav input.lang-toggle {
+  min-width: 42px;
+  height: 36px;
+  padding: 0 10px;
+  border-color: var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 500;
+ }
+ .top-nav input.lang-toggle:hover {
+  border-color: var(--accent-soft);
+  background: var(--accent-subtle);
+  color: var(--accent);
+ }
+ .top-nav input.lang-toggle:disabled {
+  color: var(--muted);
+  opacity: .55;
+ }
  .top-shell > tbody > tr:nth-child(2) td,
  .top-shell > tbody > tr:nth-child(3) td {
   padding: 8px 16px 10px;
@@ -576,6 +609,7 @@ body {
  }
  #Cal4,
  #Cal_day,
+ #Cal_tip,
  #Cal5 {
   padding: 8px;
   border: 1px solid var(--border);
@@ -585,8 +619,19 @@ body {
  #Cal_day {
   margin-bottom: 12px;
  }
+ #Cal_tip {
+  margin-bottom: 12px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-size: 14px;
+  line-height: 1.7;
+ }
+ #Cal_tip b {
+  font-weight: 500;
+ }
  #Cal4:empty,
  #Cal_day:empty,
+ #Cal_tip:empty,
  #Cal5:empty {
   display: none;
  }
@@ -609,39 +654,159 @@ body {
  [id^="page"] div {
   max-width: 100%;
  }
- #page3 > td:first-child {
-  width: 36% !important;
+#page3 > td:first-child {
+  width: 320px !important;
   max-width: none;
   padding: 16px;
   background: var(--surface-subtle);
   overflow: auto;
- }
- #page3 > td:last-child {
-  width: 64% !important;
+}
+#page3 > td:last-child {
+  width: auto !important;
   max-width: none;
   padding: 16px;
   overflow: auto;
- }
- #Cal_zb {
-  font-size: 14px;
- }
- #Cal_zb table {
+}
+#Cal_zb {
+  font-size: 13px;
+  line-height: 1.45;
+}
+#Cal_zb .astro-panel {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+#Cal_zb .astro-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-subtle);
+}
+#Cal_zb .astro-summary div,
+#Cal_zb .astro-extra div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+#Cal_zb .astro-summary span,
+#Cal_zb .astro-extra span {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+}
+#Cal_zb .astro-summary b,
+#Cal_zb .astro-extra b,
+#Cal_zb .astro-value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#Cal_zb .astro-danger {
+  color: var(--danger);
+}
+#Cal_zb .astro-section {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border);
+}
+#Cal_zb .astro-section:last-child {
+  border-bottom: 0;
+}
+#Cal_zb .astro-section-head,
+#Cal_zb .astro-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 8px;
+}
+#Cal_zb .astro-section-head {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+#Cal_zb .astro-section-no {
+  color: var(--accent);
+}
+#Cal_zb .astro-row {
+  min-height: 22px;
+}
+#Cal_zb .astro-label {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+}
+#Cal_zb .astro-value {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: clip;
+}
+#Cal_zb .astro-extra {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  background: var(--surface-subtle);
+}
+#page3 .eclipse-control-column > #Cal_zb {
+  margin-bottom: 10px;
+}
+#Cal_zb > table {
   width: 100% !important;
-  table-layout: auto;
- }
- #Cal_zb td {
+  max-width: none;
+  border: 1px solid #ffaaaa !important;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+#Cal_zb table table {
+  width: 100% !important;
+  max-width: none;
+  table-layout: fixed;
+}
+#Cal_zb td {
+  padding: 1px !important;
+  border-radius: 0 !important;
+  background: transparent;
   overflow-wrap: normal;
   word-break: keep-all;
- }
- #Cb_zb,
- #Cb_b1,
- #Cb_b2 {
+}
+#Cal_zb td[width="109"] {
+  width: 96px !important;
+  white-space: nowrap;
+}
+#Cal_zb .dTBr {
+  border-top: 1px solid #ffaaaa !important;
+  border-bottom: 1px solid #ffaaaa !important;
+}
+#Cal_zb .dBr {
+  border-bottom: 1px solid #ffaaaa !important;
+}
+#Cal_zb .bd0 {
+  border: 0 !important;
+}
+#Cb_zb,
+#Cb_b1,
+#Cb_b2 {
+  font-size: 13px;
+  line-height: 1.55;
   overflow-wrap: normal;
   word-break: normal;
- }
- #page10 canvas {
+}
+#page10 canvas {
   margin-top: 8px;
- }
+}
  #Cal_pan {
   display: none;
   position: absolute;

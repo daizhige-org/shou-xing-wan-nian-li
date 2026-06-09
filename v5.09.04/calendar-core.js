@@ -227,31 +227,26 @@ function lineOvl(x1,y1,dx,dy,r,ba){var A,B,C,D,L,t1,t2,p=new Object();var f=ba*b
 var msc={
 calc:function(T,L,fa,high){this.T=T,this.L=L,this.fa=fa;this.dt=dt_T(T);this.jd=T-this.dt;T/=36525;var zd=nutation2(T);this.dL=zd[0];this.dE=zd[1];this.E=hcjj(T)+this.dE;this.gst=pGST(this.jd,this.dt)+this.dL*Math.cos(this.E);var z=new Array();z=m_coord(T,-1,-1,-1);z[0]=rad2mrad(z[0]+gxc_moonLon(T)+this.dL);z[1]+=gxc_moonLat(T);this.mHJ=z[0];this.mHW=z[1];this.mR=z[2];z=llrConv(z,this.E);this.mCJ=z[0];this.mCW=z[1];this.mShiJ=rad2mrad(this.gst+L-z[0]);if(this.mShiJ>Math.PI)this.mShiJ-=pi2;parallax(z,this.mShiJ,fa,high);this.mCJ2=z[0],this.mCW2=z[1],this.mR2=z[2];z[0]+=Math.PI/2-this.gst-L;z=llrConv(z,Math.PI/2-fa);z[0]=rad2mrad(Math.PI/2-z[0]);this.mDJ=z[0];this.mDW=z[1];if(z[1]>0)z[1]+=MQC(z[1]);this.mPJ=z[0];this.mPW=z[1];z=e_coord(T,-1,-1,-1);z[0]=rad2mrad(z[0]+Math.PI+gxc_sunLon(T)+this.dL);z[1]=-z[1]+gxc_sunLat(T);this.sHJ=z[0];this.sHW=z[1];this.sR=z[2];z=llrConv(z,this.E);this.sCJ=z[0];this.sCW=z[1];this.sShiJ=rad2mrad(this.gst+L-z[0]);if(this.sShiJ>Math.PI)this.sShiJ-=pi2;parallax(z,this.sShiJ,fa,high);this.sCJ2=z[0],this.sCW2=z[1],this.sR2=z[2];z[0]+=Math.PI/2-this.gst-L;z=llrConv(z,Math.PI/2-fa);z[0]=rad2mrad(Math.PI/2-z[0]);this.sDJ=z[0];this.sDW=z[1];if(z[1]>0)z[1]+=MQC(z[1]);this.sPJ=z[0];this.sPW=z[1];var t=T/10,t2=t*t,t3=t2*t,t4=t3*t,t5=t4*t;var Lon=(1753470142+6283319653318*t+529674*t2+432*t3-1124*t4-9*t5)/1000000000+Math.PI-20.5/rad;Lon=rad2mrad(Lon-(this.sCJ-this.dL*Math.cos(this.E)));if(Lon>Math.PI)Lon-=pi2;this.sc=Lon/pi2;this.pty=this.jd+L/pi2;this.zty=this.jd+L/pi2+this.sc;this.mRad=cs_sMoon/this.mR2;this.sRad=959.63/this.sR2;this.e_mRad=cs_sMoon/this.mR;this.eShadow=(cs_rEarA/this.mR*rad-(959.63-8.794)/this.sR)*51/50;this.eShadow2=(cs_rEarA/this.mR*rad+(959.63+8.794)/this.sR)*51/50;this.mIll=XL.moonIll(T);if(Math.abs(rad2rrad(this.mCJ-this.sCJ))<50/180*Math.PI){var pp=lineEar(new Array(this.mCJ,this.mCW,this.mR),new Array(this.sCJ,this.sCW,this.sR*cs_AU),this.gst);this.zx_J=pp.J;this.zx_W=pp.W;}else this.zx_J=this.zx_W=100;},
 toHTML:function(fs){
-var s='<table width="100%" cellspacing=2 cellpadding=0>';
-s+='<tr><td class=bd0 align=center colspan=3>';
-s+='平太阳时 '+JD.timeStr(this.pty)+'　真太阳时 <font color=red>'+JD.timeStr(this.zty)+'</font><br>';
-s+='时差 '+m2fm(this.sc*86400,2,1)+"　月亮被照亮 "+(this.mIll*100).toFixed(2)+'% ';
-s+='</td></tr><tr><td class=dTBr align=center>';
-s+='<table width="100%" cellspacing=2 cellpadding=0><tr>';
-s+='<td align=center><font color=blue><b><a title="“表一”为地心坐标">表一</a></b></font><br>视黄经<br>视黄纬<br>视赤经<br>视赤纬<br>距　离</td><td width=109 align=right>'
-+'<center>月亮</center>'+rad2str(this.mHJ,0)+'<br>'+rad2str(this.mHW,0)+'<br>'+rad2str(this.mCJ,0)+'<br>'+rad2str(this.mCW,0)+'<br>'+(this.mR).toFixed(2)+'km'+'</td><td width=109 align=right>'
-+'<center>太阳</center>'+rad2str(this.sHJ,0)+'<br>'+rad2str(this.sHW,0)+'<br>'+rad2str(this.sCJ,0)+'<br>'+rad2str(this.sCW,0)+'<br>'+(this.sR).toFixed(8)+'AU'+'</td>';
-s+='</tr></table>';
-s+='</td></tr><tr>';if(fs){s+='<td class=dBr align=center>';}else{s+='<td class=bd0 align=center>';}
-s+='<table width="100%" cellspacing=2 cellpadding=0><tr>';
-s+='<td align=center><font color=blue><b><a title="“表二”为站心坐标">表二</a></b></font><br>方位角<br>高度角<br>时　角<br>视半径</td><td width=109 align=right>'
-+'<center>月亮</center>'+rad2str((this.mPJ+Math.PI)%(2*Math.PI),0)+'<br>'+rad2str(this.mPW,0)+'<br>'+rad2str(this.mShiJ,1)+'<br>'+m2fm(this.mRad,2,0)+'</td><td width=109 align=right>'
-+'<center>太阳</center>'+rad2str((this.sPJ+Math.PI)%(2*Math.PI),0)+'<br>'+rad2str(this.sPW,0)+'<br>'+rad2str(this.sShiJ,1)+'<br>'+m2fm(this.sRad,2,0)+'</td>';
-s+='</tr></table>';
-s+='</td></tr>';
+function row(label,moon,sun){return '<div class="astro-row"><div class="astro-label">'+label+'</div><div class="astro-value">'+moon+'</div><div class="astro-value">'+sun+'</div></div>';}
+function section(no,title,rows){return '<section class="astro-section"><div class="astro-section-head"><span class="astro-section-no" title="'+title+'">表'+no+'</span><span>月亮</span><span>太阳</span></div>'+rows+'</section>';}
+var s='<div class="astro-panel">';
+s+='<div class="astro-summary"><div><span>平太阳时</span><b>'+JD.timeStr(this.pty)+'</b></div><div><span>真太阳时</span><b class="astro-danger">'+JD.timeStr(this.zty)+'</b></div><div><span>时差</span><b>'+m2fm(this.sc*86400,2,1)+'</b></div><div><span>月亮被照亮</span><b>'+((this.mIll*100).toFixed(2))+'%</b></div></div>';
+s+=section('一','“表一”为地心坐标',
+row('视黄经',rad2str(this.mHJ,0),rad2str(this.sHJ,0))+
+row('视黄纬',rad2str(this.mHW,0),rad2str(this.sHW,0))+
+row('视赤经',rad2str(this.mCJ,0),rad2str(this.sCJ,0))+
+row('视赤纬',rad2str(this.mCW,0),rad2str(this.sCW,0))+
+row('距离',(this.mR).toFixed(2)+'km',(this.sR).toFixed(8)+'AU'));
+s+=section('二','“表二”为站心坐标',
+row('方位角',rad2str((this.mPJ+Math.PI)%(2*Math.PI),0),rad2str((this.sPJ+Math.PI)%(2*Math.PI),0))+
+row('高度角',rad2str(this.mPW,0),rad2str(this.sPW,0))+
+row('时角',rad2str(this.mShiJ,1),rad2str(this.sShiJ,1))+
+row('视半径',m2fm(this.mRad,2,0),m2fm(this.sRad,2,0)));
 if(fs){
-s+='<tr><td class=bd0 align=center><table width="100%" cellspacing=2 cellpadding=0><tr><td align=center>';
-s+='力学时 '+JD.JD2str(this.T+J2000);
-s+='　<i>Δ</i>T= '+(this.dt*86400).toFixed(1)+'秒<br>';
-s+='黄经章 '+(this.dL/pi2*360*3600).toFixed(2)+'"　';
-s+='交角章 '+(this.dE/pi2*360*3600).toFixed(2)+'"<br>';
-s+='ε='+rad2str(this.E,0);
-s+='</td></tr></table></td></tr>';}s+='</table>';return s;}};
+s+='<section class="astro-section astro-extra"><div><span>力学时</span><b>'+JD.JD2str(this.T+J2000)+'</b></div><div><span><i>Δ</i>T</span><b>'+((this.dt*86400).toFixed(1))+'秒</b></div><div><span>黄经章</span><b>'+((this.dL/pi2*360*3600).toFixed(2))+'"</b></div><div><span>交角章</span><b>'+((this.dE/pi2*360*3600).toFixed(2))+'"</b></div><div><span>ε</span><b>'+rad2str(this.E,0)+'</b></div></section>';
+}
+s+='</div>';
+return s;}};
 var ysPL={
 lineT:function(G,v,u,r,n){var b=G.y*v-G.x*u,A=u*u+v*v,B=u*b,C=b*b-r*r*v*v,D=B*B-A*C;if(D<0)return 0;D=Math.sqrt(D);if(!n)D=-D;return G.t+((-B+D)/A-G.x)/v;},
 lecXY:function(jd,re){var T=jd/36525,zm=new Array(),zs=new Array();zs=e_coord(T,-1,-1,-1);zs[0]=rad2mrad(zs[0]+Math.PI+gxc_sunLon(T));zs[1]=-zs[1]+gxc_sunLat(T);zm=m_coord(T,-1,-1,-1);zm[0]=rad2mrad(zm[0]+gxc_moonLon(T));zm[1]+=gxc_moonLat(T);re.e_mRad=cs_sMoon/zm[2];re.eShadow=(cs_rEarA/zm[2]*rad-(959.63-8.794)/zs[2])*51/50;re.eShadow2=(cs_rEarA/zm[2]*rad+(959.63+8.794)/zs[2])*51/50;re.x=rad2rrad(zm[0]+Math.PI-zs[0])*Math.cos((zm[1]-zs[1])/2);re.y=zm[1]+zs[1];re.mr=re.e_mRad/rad,re.er=re.eShadow/rad,re.Er=re.eShadow2/rad;re.t=jd;},
@@ -514,15 +509,9 @@ c2='<span'+c2+'>'+ob.d+'</span>';
 if(ob.d0==curJD)c2='<span'+sty_cur+'>'+c2+'</span>';
 if(ob.d0==curJD)cr+='<td id="Cal_day_'+i+'" class="date-cell is-selected" onclick="showMessD('+i+')"'+sty_cur2+'width="14%">'+c2+'<br>'+isM+c+'</td>';
 else cr+='<td id="Cal_day_'+i+'" class="date-cell" onclick="showMessD('+i+')"'+sty_body+'width="14%">'+c2+'<br>'+isM+c+'</td>';
-var crms='<td colspan=5 align=center><font color=#FF6666><a title="'
-+'按住ctrl键不放，可保持显示该日信息摘要。'
-+'"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询BCE 4713至9999年，<b>BCE 722年以后为实历</b></a></font></td>';
-if(i==lun.dn-1&&n==1&&ob.week<2){for(j=0;j<1-ob.week;j++)cr+='<td'+sty_body+'></td>';cr+=crms;}
+if(i==lun.dn-1&&n==1&&ob.week<2){for(j=0;j<6-ob.week;j++)cr+='<td'+sty_body+'></td>';}
 else if(i==lun.dn-1){for(j=0;j<6-ob.week;j++)cr+='<td'+sty_body+'></td>';}
 if(i==this.dn-1||ob.week==6)ta0+='<tr>'+cr+'</tr>',cr="",n--;}
-for(i=0;i<n;i++){
-if(i==n-1)ta0+='<tr><td'+sty_body+'></td><td'+sty_body+'></td>'+crms+'</tr>';
-else ta0+='<tr><td'+sty_body+'>　<br>　</td></tr>';}
 this.pg1='<table border=0 cellpadding=1 cellspacing=1 width="100%" height=331>'+ta0+'</table>';
 var b2='',b3='',b4='';
 for(i=0;i<this.dn;i++){
@@ -609,6 +598,7 @@ if(f==1)s='<div class="help-content">'
  +'<ol class="help-list">'
  +'<li>重做页面视觉样式和主要布局，统一表格、输入框、工具栏与帮助区宽度表现。优化日月食等页面的宽度、等宽字体和地图/表格对齐问题。</li>'
  +'<li>地点选择改为国际机场数据。</li>'
+ +'<li>增加基于 OpenCC 的繁简转换按钮，支持通过 URL 和本地存储保持当前显示状态。</li>'
  +'<li>月历格子可点击，日期详情固定显示在左侧信息栏；默认显示今天的内容。</li>'
  +'<li>月历只保留农历信息并加入每日干支；月历界面隐藏「儿童节」等现代节日显示。</li>'
  +'<li>改进年份输入和纪年显示：支持负数年份转 BCE 输入，统一 BCE 文案，1949 年后显示中华民国纪年，并并列显示近代日本年号。</li>'
