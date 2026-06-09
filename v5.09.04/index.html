@@ -259,13 +259,14 @@
  .dBot2 { padding: 16px; border-bottom: 1px solid var(--border); }
  .dTop2 { padding: 14px 16px; border-top: 1px solid var(--border); color: var(--muted); }
  body > center > table > tbody > tr > td > table:first-child {
+  position: relative;
   width: 100% !important;
   margin-bottom: 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: rgba(255, 255, 255, .92);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: visible;
  }
  body > center > table > tbody > tr > td > table:first-child table[width="770"] {
   width: 100% !important;
@@ -290,6 +291,20 @@
  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child td[align="right"] {
   text-align: right;
  }
+ .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+ }
+ .brand-mark svg {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+ }
  body > center > table > tbody > tr > td > table:first-child > tbody > tr:first-child input[type="button"] {
   border-color: transparent;
   background: transparent;
@@ -307,7 +322,7 @@
  }
  .top-selector-grid {
   display: grid;
-  grid-template-columns: minmax(400px, .85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(320px, .65fr) minmax(0, 1.35fr);
   gap: 8px 20px;
   align-items: start;
  }
@@ -317,6 +332,12 @@
   gap: 6px 8px;
   align-items: center;
   min-width: 0;
+ }
+ .top-control-group.location-group {
+  display: grid;
+  grid-template-columns: 150px minmax(260px, 560px);
+  gap: 6px 8px;
+  align-items: center;
  }
  .top-control-group select {
   min-height: 30px;
@@ -333,7 +354,14 @@
  #Sel_zhou { width: 112px; }
  #Sel_dq { width: 180px; }
  #Sel1 { width: 150px; }
- #Sel2 { width: min(390px, 100%); flex: 1 1 280px; }
+ #Sel2 {
+  width: 100%;
+  max-width: 560px;
+ }
+ #Sel2 + .meta {
+  grid-column: 1 / -1;
+  white-space: nowrap;
+ }
  #Cal_zdzb {
   white-space: normal;
   overflow-wrap: anywhere;
@@ -342,9 +370,36 @@
   .top-selector-grid {
    grid-template-columns: 1fr;
   }
+  .top-control-group.location-group {
+   grid-template-columns: 150px minmax(240px, 1fr);
+  }
+  #Sel2 + .meta {
+   white-space: normal;
+  }
  }
  #tools {
-  padding-top: 8px;
+  position: absolute;
+  top: 54px;
+  right: 16px;
+  z-index: 20;
+  min-width: 128px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+ }
+ #tools .cua {
+  display: grid;
+  gap: 2px;
+ }
+ #tools .cua a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--text);
+  white-space: nowrap;
  }
  #help {
   padding: 16px !important;
@@ -1178,10 +1233,16 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
 <tbody>
 <tr>
 <td>
-  <!--软件版本-->
-  <span style="font-family:楷体;font-size:20px;color:#FF0000;font-weight:bold">寿星</span>
-  <span style="font-size:16px;font-weight:bold"><font color=green>天文历</font></span>
-  <span style="font-size:14px;font-weight:bold"><font color=blue>风羲版</font></span> (V5.09.04)
+  <!--软件名称-->
+  <span class="brand-mark">
+    <svg viewBox="0 0 32 32" role="img" aria-label="寿星天文历">
+      <circle cx="16" cy="16" r="14" fill="#eff6ff"/>
+      <path d="M16 4.5a11.5 11.5 0 1 0 0 23 8.2 8.2 0 1 1 0-23Z" fill="#2563eb"/>
+      <circle cx="22" cy="9.5" r="2.2" fill="#f59e0b"/>
+      <path d="M7 21.5c5.2-1.4 11.1-1.4 18 0" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>寿星天文历</span>
+  </span>
 </td>
 <td align=right>
   <input type="button" onclick="showPage(1)" value="月历">
@@ -1205,7 +1266,7 @@ function GJ2_cls(){GJ2_out.innerHTML='';}
     <!--时区选择--><select id="Sel_zhou" onchange="change_zhou()"></select><select id="Sel_dq" onchange="change_dq()"></select>
     <span class="meta"><!--外地时间--><span id="Sel_sqsm"></span>时间:<span id="Clock2" style="font-weight:bold;color:blue"></span></span>
   </div>
-  <div class="top-control-group">
+  <div class="top-control-group location-group">
     <!--经纬选择--><select id="Sel1" onchange="change()"></select><select id="Sel2" onchange="change2()"></select>
     <span class="meta"><!--经度纬度--><span id="Cal_zdzb"></span><!--地方时间-->地方时间:<span id="Clock1" style="color:red;font-weight:bold"></span></span>
   </div>
