@@ -653,6 +653,7 @@ function applyUrlState(pg){
 function writePageStateParams(params, pg){
   var i;
   for(i=0;i<urlStateKeys.length;i++) params.delete(urlStateKeys[i]);
+  if(Sel2 && Sel2.options && Sel2.options.length) params.set('airport', Sel2.options[Sel2.selectedIndex].value);
   if(pg==1){
     params.set('year', Ayear2UrlYear(year2Ayear(Cal_y.value)));
     params.set('month', Cal_m.value);
@@ -848,6 +849,35 @@ function airportLocalTimeString(t){
     return t.toLocaleString2();
   }
 }
+function utcDateWithFullYear(y,m,d,h,mi,s){
+  var date = new Date(Date.UTC(2000, 0, 1, h||12, mi||0, s||0));
+  date.setUTCFullYear(y, m-1, d);
+  date.setUTCHours(h||12, mi||0, s||0, 0);
+  return date;
+}
+function airportTimezoneOffsetHours(y,m,d){
+  var timeZone = Sel2.timeZone;
+  if(!timeZone || !window.Intl) return curTZ;
+  try{
+    var date = utcDateWithFullYear(y, m, d, 12);
+    var parts = new Intl.DateTimeFormat('en-US-u-ca-gregory', {
+      timeZone: timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(date);
+    var ob = {}, i;
+    for(i=0;i<parts.length;i++) if(parts[i].type!='literal') ob[parts[i].type]=parts[i].value;
+    var localAsUtc = utcDateWithFullYear(ob.year-0, ob.month-0, ob.day-0, ob.hour-0, ob.minute-0, ob.second-0).getTime();
+    return -(localAsUtc - date.getTime()) / 3600000;
+  }catch(e){
+    return curTZ;
+  }
+}
 
 /****************
 地理经纬度选择的页面控制函数
@@ -868,6 +898,7 @@ function change2(){
   showMessD(-2);
   storageL.setItem('AirportCountryIndexV3',Sel1.selectedIndex,1000);
   storageL.setItem('AirportCodeV3',code,1000);
+  syncActivePageUrl(true);
 }
 function change(){
   if(!Sel1.options.length) return;
@@ -946,17 +977,12 @@ var airportMap = {}, airportCountries = [], airportGroups = {};
 var i;
 initAirportSelectors();
 for(i=0;i<airportCountries.length;i++) addOp(document.all.Sel1,i,airportCountries[i]);
-var seI1 = storageL.getItem('AirportCountryIndexV3');
-var seI2 = storageL.getItem('AirportCodeV3');
-var defaultCountry = airportCountries.indexOf('United States');
-if(seI2 && airportMap[seI2]) defaultCountry = airportCountries.indexOf(airportMap[seI2].country);
+var urlAirport = (new URLSearchParams(location.search).get('airport') || 'SEA').toUpperCase();
+if(!airportMap[urlAirport]) urlAirport = 'SEA';
+var defaultCountry = airportCountries.indexOf(airportMap[urlAirport] ? airportMap[urlAirport].country : 'United States');
 if(defaultCountry<0) defaultCountry = 0;
-Sel1.selectedIndex = selectedIndexOrFallback(seI1, Sel1.options.length, defaultCountry); change();
-var defaultAirport = optionIndexByValue(Sel2, 'SEA');
-if(seI2) {
-  var savedAirport = optionIndexByValue(Sel2, seI2);
-  if(savedAirport>=0) defaultAirport = savedAirport;
-}
+Sel1.selectedIndex = defaultCountry; change();
+var defaultAirport = optionIndexByValue(Sel2, urlAirport);
 if(defaultAirport<0) defaultAirport = 0;
 Sel2.selectedIndex = defaultAirport; change2();
 
@@ -1058,7 +1084,7 @@ function showMessD(n, skipUrl){ //显时本月第n日的摘要信息。调用前
  //显示n指定的日期信息
  var ob = lun.lun[n];
  selectedMonthDay = ob.d;
- Cal5.innerHTML = RTS1(ob.d0, vJ, vW, curTZ);
+ Cal5.innerHTML = RTS1(ob.d0, vJ, vW, airportTimezoneOffsetHours(ob.y, ob.m, ob.d));
  Cal_day.innerHTML = dayMessHTML(ob);
  if(Cal_pan) Cal_pan.style.display = 'none';
  for(var j=0;j<lun.dn;j++){
