@@ -368,7 +368,7 @@ body {
  }
  .top-selector-grid {
   display: grid;
-  grid-template-columns: minmax(320px, .65fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(320px, 35%) minmax(0, 65%);
   gap: 8px 20px;
   align-items: start;
  }
