@@ -133,6 +133,7 @@ function pCalc(xm){ //行星星历计算
    s += xingX(xt,jd,L,fa)+'\r\n';
  }
  Cd_tab.value=s;
+ syncActivePageUrl(true);
 }
 
 //=============日月食图表===========
@@ -251,6 +252,7 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
   s+='是否NASA径比(1是,0否): '+rsPL.nasa_r+'<br>';
   s+='食分指日面直径被遮比例';
   Cb_b1.innerHTML = s;
+  if(!Cal_rt.checked) syncActivePageUrl(true);
   return;
  }
  if(msHJ>170/radd && msHJ<190/radd){ //月食图表放大计算
@@ -275,10 +277,12 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
   s+='食分指月面直径被遮比例';
   Cb_b1.innerHTML = s;
   Cb_b2.innerHTML = '';
+  if(!Cal_rt.checked) syncActivePageUrl(true);
   return;
  }
  tu1.ecShow(0,0,0,0);
  Cb_zb.innerHTML = Cb_b1.innerHTML = Cb_b2.innerHTML = '';
+ if(!Cal_rt.checked) syncActivePageUrl(true);
 }
 function tu_cls_path(){
  tu1.init(Can1);
@@ -575,7 +579,116 @@ function houCalc(){ //定候测试函数
 //==========================
 //页面生成有关的函数
 //==========================
-function showPage(pg){
+var pageUrlMap = {
+  1:'month', 2:'year', 3:'eclipse', 4:'local-eclipse', 5:'ephemeris',
+  6:'phenomena', 7:'stars', 8:'qi-shuo', 9:'rise-set',
+  10:'eclipse-overview', 11:'tools', 12:'constants'
+};
+var pageNameMap = {};
+for(var pageUrlKey in pageUrlMap) pageNameMap[pageUrlMap[pageUrlKey]] = pageUrlKey-0;
+pageNameMap.planet = 5;
+pageNameMap.star = 5;
+var activePage = 1;
+var urlSyncEnabled = false;
+var selectedMonthDay = 0;
+var urlStateKeys = 'year,month,day,time,body'.split(',');
+function normalizePageParam(value){
+  var pg;
+  if(!value) return 1;
+  if(pageNameMap[value]) return pageNameMap[value];
+  pg = value-0;
+  if(pg>=1 && pg<=12) return pg;
+  return 1;
+}
+function currentUrlPage(){
+  return normalizePageParam(new URLSearchParams(location.search).get('page'));
+}
+function Ayear2UrlYear(y){
+  y-=0;
+  if(isNaN(y)) return '';
+  return y<=0 ? 'BCE'+(-y+1) : ''+y;
+}
+function urlYear2Input(value, fallback){
+  var s = String(value || '').replace(/\s+/g,'');
+  var m;
+  if(!s) return fallback;
+  m = s.match(/^B(?:CE)?\.?(\d+)$/i);
+  if(m) return 'B'+(m[1]-0);
+  m = s.match(/^-(\d+)$/);
+  if(m) return 'B'+(m[1]-0);
+  m = s.match(/^(\d+)$/);
+  if(m && (m[1]-0)>0) return ''+(m[1]-0);
+  return fallback;
+}
+function setInputFromParam(id, params, key, normalize){
+  var value = params.get(key || id), ob = document.getElementById(id);
+  if(value!==null && ob) ob.value = normalize ? normalize(value, ob.value) : value;
+}
+function setSelectFromParam(id, params, key){
+  var value = params.get(key || id), ob = document.getElementById(id);
+  if(value!==null && ob && optionIndexByValue(ob, value)>=0) ob.value = value;
+}
+function applyUrlState(pg){
+  var params = new URLSearchParams(location.search);
+  if(pg==1){
+    setInputFromParam('Cal_y', params, 'year', urlYear2Input);
+    setInputFromParam('Cal_m', params, 'month');
+    selectedMonthDay = Math.max(0, Math.ceil(params.get('day') || 0));
+  }
+  if(pg==2) setInputFromParam('Cp2_y', params, 'year', urlYear2Input);
+  if(pg==3){
+    setInputFromParam('Cb_y', params, 'year', urlYear2Input);
+    setInputFromParam('Cb_m', params, 'month');
+    setInputFromParam('Cb_d', params, 'day');
+    setInputFromParam('Cb_t', params, 'time');
+  }
+  if(pg==5){
+    setSelectFromParam('Cd_xt', params, 'body');
+    setInputFromParam('Cd_y', params, 'year', urlYear2Input);
+    setInputFromParam('Cd_m', params, 'month');
+    setInputFromParam('Cd_d', params, 'day');
+    setInputFromParam('Cd_t', params, 'time');
+  }
+}
+function writePageStateParams(params, pg){
+  var i;
+  for(i=0;i<urlStateKeys.length;i++) params.delete(urlStateKeys[i]);
+  if(pg==1){
+    params.set('year', Ayear2UrlYear(year2Ayear(Cal_y.value)));
+    params.set('month', Cal_m.value);
+    if(selectedMonthDay) params.set('day', selectedMonthDay);
+  }
+  if(pg==2) params.set('year', Ayear2UrlYear(year2Ayear(Cp2_y.value)));
+  if(pg==3){
+    params.set('year', Ayear2UrlYear(year2Ayear(Cb_y.value)));
+    params.set('month', Cb_m.value);
+    params.set('day', Cb_d.value);
+    params.set('time', Cb_t.value);
+  }
+  if(pg==5){
+    params.set('body', Cd_xt.value);
+    params.set('year', Ayear2UrlYear(year2Ayear(Cd_y.value)));
+    params.set('month', Cd_m.value);
+    params.set('day', Cd_d.value);
+    params.set('time', Cd_t.value);
+  }
+}
+function syncPageUrl(pg, replace){
+  if(!history || !history[replace?'replaceState':'pushState']) return;
+  var params = new URLSearchParams(location.search);
+  params.set('page', pageUrlMap[pg] || 'month');
+  writePageStateParams(params, pg);
+  var nextUrl = location.pathname + '?' + params.toString() + location.hash;
+  if(nextUrl == location.pathname + location.search + location.hash) return;
+  history[replace?'replaceState':'pushState']({page: pg}, '', nextUrl);
+}
+function syncActivePageUrl(replace){
+  if(urlSyncEnabled) syncPageUrl(activePage, replace);
+}
+function showPage(pg, skipUrl){
+  pg = normalizePageParam(pg);
+  activePage = pg;
+  if(!skipUrl) syncPageUrl(pg, false);
   showHelp(0); //关闭可能已打开的帮助页面
   Cal_pause.checked=true;
   page1.style.display='none';
@@ -933,7 +1046,7 @@ function dayMessHTML(ob){
  return s;
 }
 
-function showMessD(n){ //显时本月第n日的摘要信息。调用前应先执月历页面生成，产生有效的lun对象
+function showMessD(n, skipUrl){ //显时本月第n日的摘要信息。调用前应先执月历页面生成，产生有效的lun对象
  if(!lun.dn||n>=lun.dn) return;
  var vJ = Sel2.vJ-0, vW = Sel2.vW-0;
  if(n==-1) return;
@@ -944,6 +1057,7 @@ function showMessD(n){ //显时本月第n日的摘要信息。调用前应先执
  if(n<0) return;
  //显示n指定的日期信息
  var ob = lun.lun[n];
+ selectedMonthDay = ob.d;
  Cal5.innerHTML = RTS1(ob.d0, vJ, vW, curTZ);
  Cal_day.innerHTML = dayMessHTML(ob);
  if(Cal_pan) Cal_pan.style.display = 'none';
@@ -953,6 +1067,7 @@ function showMessD(n){ //显时本月第n日的摘要信息。调用前应先执
  }
  var cur=document.getElementById('Cal_day_'+n);
  if(cur && cur.className.indexOf('is-selected')<0) cur.className += ' is-selected';
+ if(activePage==1 && !skipUrl) syncActivePageUrl(false);
 }
 
 /**********************
@@ -971,10 +1086,25 @@ function getLunar(){ //月历页面生成
    Cal4.innerHTML = lun.pg2;
   }
 
-  showMessD(-2);
+  if(selectedMonthDay>0 && selectedMonthDay<=lun.dn) showMessD(selectedMonthDay-1, true);
+  else showMessD(-2, true);
+  if(activePage==1) syncActivePageUrl(false);
 }
 
+var initialPage = currentUrlPage();
+applyUrlState(initialPage);
 getLunar(); //调用月历页面生成函数
+showPage(initialPage, true);
+syncPageUrl(initialPage, true);
+urlSyncEnabled = true;
+window.addEventListener('popstate', function(){
+  var pg = currentUrlPage(), old = urlSyncEnabled;
+  urlSyncEnabled = false;
+  applyUrlState(pg);
+  if(pg==1) getLunar();
+  showPage(pg, true);
+  urlSyncEnabled = old;
+});
 
 /**********************
 年历面页生成
@@ -989,6 +1119,7 @@ function getNianLi(dy){ //dy起始年份偏移数
  if(y<-10000) { alert('超出计算范围'); return; } //检查输入值
  if(Cp2_tg.checked) Cal7.innerHTML = '<br>　<b>'+Ayear2year(y)+'年</b><br>'+nianLiHTML(y,'')+'<br>';
  else               Cal7.innerHTML = '<br>　<b>'+Ayear2year(y)+'年</b><br>'+nianLi2HTML(y)+'<br>';
+ if(activePage==2) syncActivePageUrl(false);
 }
 function getNianLiN(){ //dy起始年份偏移数
  y=year2Ayear(Cp2_y.value);
@@ -1001,6 +1132,7 @@ function getNianLiN(){ //dy起始年份偏移数
   else               s += '<br>　<b>'+Ayear2year(y+i)+'年</b><br>'+nianLi2HTML(y+i);
  }
  Cal7.innerHTML = s+'<br>';
+ if(activePage==2) syncActivePageUrl(false);
 }
 
 /**********************
