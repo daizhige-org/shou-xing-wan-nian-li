@@ -590,6 +590,7 @@ pageNameMap.planet = 5;
 pageNameMap.star = 5;
 var activePage = 1;
 var urlSyncEnabled = false;
+var pageAutoRenderReady = false;
 var selectedMonthDay = 0;
 var urlStateKeys = 'year,month,day,time,body'.split(',');
 function normalizePageParam(value){
@@ -694,6 +695,15 @@ function updateTopNavActive(pg){
     else tabs[i].classList.remove('is-active');
   }
 }
+function safePageRender(fn){
+  try{ fn(); }
+  catch(e){ if(window.console) console.error(e); }
+}
+function renderPageOnFirstShow(pg){
+  if(pg==4 && !Cc_tb.value) safePageRender(function(){ dfRS(0); });
+  if(pg==5 && !Cd_tab.value) safePageRender(function(){ pCalc(); });
+  if(pg==10 && !Cp10_tz.innerHTML) safePageRender(function(){ tu2_calc(2); });
+}
 function showPage(pg, skipUrl){
   pg = normalizePageParam(pg);
   activePage = pg;
@@ -714,8 +724,8 @@ function showPage(pg, skipUrl){
   page11.style.display='none';
   page12.style.display='none';
   if(pg==1) page1.style.display='';
-  if(pg==2){page2.style.display='block'; getNianLi(0);} //年历
-  if(pg==3){page3.style.display='block'; tu_calc(2);} //图表
+  if(pg==2){page2.style.display='block'; safePageRender(function(){ getNianLi(0); });} //年历
+  if(pg==3){page3.style.display='block'; safePageRender(function(){ tu_calc(2); });} //图表
   if(pg==4) page4.style.display='block'; //地方日食
   if(pg==5) page5.style.display='block'; //行星星历
   if(pg==6) page6.style.display='block'; //行星天象
@@ -725,6 +735,7 @@ function showPage(pg, skipUrl){
   if(pg==10) page10.style.display='block'; //食概
   if(pg==11) page11.style.display='block'; //工具
   if(pg==12) page12.style.display='block'; //常数表
+  if(pageAutoRenderReady) renderPageOnFirstShow(pg);
 }
 
 function tools(){
@@ -799,42 +810,101 @@ normalizeYearInputs();
 /****************
 外地时间选择
 ****************/
-function change_dq(){ //国家或地区改变
-  var i,v = Sel_dq.options[Sel_dq.selectedIndex].value;
-  v = v.split('#');
-  Sel_dq.v = v[0]; //地区时差
-  Sel_dq.rg= v[1]; //日光节约参数
-  Sel_sqsm.innerHTML=v[2];  //时区说明
+var majorTimeZones=[
+ 'Africa/Cairo','Africa/Casablanca','Africa/Johannesburg','Africa/Lagos','Africa/Nairobi',
+ 'America/Anchorage','America/Argentina/Buenos_Aires','America/Bogota','America/Chicago','America/Denver',
+ 'America/Halifax','America/Honolulu','America/Los_Angeles','America/Mexico_City','America/New_York',
+ 'America/Phoenix','America/Santiago','America/Sao_Paulo','America/St_Johns','America/Toronto',
+ 'America/Vancouver',
+ 'Asia/Bangkok','Asia/Dubai','Asia/Ho_Chi_Minh','Asia/Hong_Kong','Asia/Jakarta','Asia/Jerusalem',
+ 'Asia/Karachi','Asia/Kathmandu','Asia/Kolkata','Asia/Kuala_Lumpur','Asia/Manila','Asia/Seoul',
+ 'Asia/Shanghai','Asia/Singapore','Asia/Taipei','Asia/Tokyo',
+ 'Atlantic/Azores','Atlantic/Reykjavik',
+ 'Australia/Adelaide','Australia/Brisbane','Australia/Darwin','Australia/Melbourne','Australia/Perth',
+ 'Australia/Sydney',
+ 'Europe/Amsterdam','Europe/Athens','Europe/Berlin','Europe/Istanbul','Europe/Lisbon','Europe/London',
+ 'Europe/Madrid','Europe/Moscow','Europe/Paris','Europe/Rome','Europe/Stockholm','Europe/Zurich',
+ 'Pacific/Auckland','Pacific/Chatham','Pacific/Fiji','Pacific/Guam','Pacific/Honolulu','Pacific/Port_Moresby',
+ 'Pacific/Tahiti'
+];
+var majorTimeZoneGroups={};
+
+function timeZoneRegion(timeZone){
+  return String(timeZone).split('/')[0];
+}
+function timeZoneDisplayName(timeZone){
+  return String(timeZone).replace(/^[^/]+\//,'').replace(/_/g,' ');
+}
+function getSelectedForeignTimeZone(){
+  if(!Sel_dq.options.length) return 'Asia/Shanghai';
+  return Sel_dq.options[Sel_dq.selectedIndex].value || 'Asia/Shanghai';
+}
+function change_dq(){ //时区改变
+  Sel_dq.timeZone = getSelectedForeignTimeZone();
+  Sel_sqsm.innerHTML = '';
+  storageL.setItem('ForeignTimeZone', Sel_dq.timeZone, 1000);
 }
 
-function change_zhou(){ //洲别改变
-  var i, ob = SQv[ Sel_zhou.options[Sel_zhou.selectedIndex].value-0 ]; //某洲数组
+function change_zhou(){ //IANA 区域改变
+  var i, region = Sel_zhou.options[Sel_zhou.selectedIndex].value;
+  var selected = Sel_dq.timeZone || storageL.getItem('ForeignTimeZone') || 'Asia/Shanghai';
+  var list = majorTimeZoneGroups[region] || [];
   Sel_dq.length=0;
-  for(i=1; i<ob.length; i+=2) addOp(Sel_dq,ob[i+1],ob[i]);
+  for(i=0; i<list.length; i++) addOp(Sel_dq, list[i], timeZoneDisplayName(list[i]));
+  for(i=0; i<Sel_dq.options.length; i++){
+    if(Sel_dq.options[i].value==selected){
+      Sel_dq.selectedIndex=i;
+      break;
+    }
+  }
   change_dq();
 }
 
-for(i=0;i<SQv.length;i++) addOp(document.all.Sel_zhou,i,SQv[i][0]);
-change_zhou();
+function initForeignTimeZones(){
+  var i, region, regions=[], saved = storageL.getItem('ForeignTimeZone') || 'Asia/Shanghai';
+  majorTimeZones.sort();
+  for(i=0;i<majorTimeZones.length;i++){
+    region = timeZoneRegion(majorTimeZones[i]);
+    if(!majorTimeZoneGroups[region]){
+      majorTimeZoneGroups[region]=[];
+      regions.push(region);
+    }
+    majorTimeZoneGroups[region].push(majorTimeZones[i]);
+  }
+  Sel_zhou.length=0;
+  for(i=0;i<regions.length;i++) addOp(Sel_zhou, regions[i], regions[i]);
+  region = timeZoneRegion(saved);
+  for(i=0;i<Sel_zhou.options.length;i++){
+    if(Sel_zhou.options[i].value==region){
+      Sel_zhou.selectedIndex=i;
+      break;
+    }
+  }
+  change_zhou();
+}
+initForeignTimeZones();
 
 function show_clock(t){ //显示时钟,传入日期对象
-  var h  = Sel_dq.v-0, rg='';
-  var v  = Sel_dq.rg;
-  var jd = t/86400000-10957.5 + h/24; //J2000起算的儒略日数(当地时间)
-
   Clock1.innerHTML = airportLocalTimeString(t);
+  Clock2.innerHTML = foreignTimeString(t, getSelectedForeignTimeZone());
+}
 
-  if(v){
-   var y1 = JD.Y, y2=y1; //该时所在年份
-   var m1 = v.substr(0,2)-0, m2 = v.substr(5,2)-0;
-   if(m2<m1) y2++;
-   //nnweek(y,m,n,w)求y年m月第n个星期w的jd
-   var J1 = JD.nnweek( y1, m1, v.substr(2,1), v.substr(3,1)-0  )-0.5-J2000 +(v.charCodeAt(4)-97)/24;
-   var J2 = JD.nnweek( y2, m2, v.substr(7,1), v.substr(8,1)-0  )-0.5-J2000 +(v.charCodeAt(9)-97)/24;
-   if(jd>=J1 && jd<J2) jd+=1/24, rg='<font color=red>¤</font>';  //夏令时
+function foreignTimeString(t,timeZone){
+  try{
+    var parts = new Intl.DateTimeFormat('zh-CN-u-ca-gregory', {
+      timeZone: timeZone,
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(t);
+    var ob = {}, i;
+    for(i=0;i<parts.length;i++) if(parts[i].type!='literal') ob[parts[i].type]=parts[i].value;
+    return ob.day+'日 '+ob.hour+':'+ob.minute+':'+ob.second;
+  }catch(e){
+    return t.toLocaleString2();
   }
-  JD.setFromJD(jd+J2000);
-  Clock2.innerHTML = (JD.D>9?JD.D:'0'+JD.D)+'日 '+(JD.h>9?JD.h:'0'+JD.h)+':'+(JD.m>9?JD.m:'0'+JD.m)+':'+(int2(JD.s)>9?int2(JD.s):'0'+int2(JD.s))+rg; //为了与clock1同步,秒数取整而不四舍五入
 }
 
 function airportLocalTimeString(t){
@@ -995,6 +1065,23 @@ var defaultAirport = optionIndexByValue(Sel2, urlAirport);
 if(defaultAirport<0) defaultAirport = 0;
 Sel2.selectedIndex = defaultAirport; change2();
 
+var initialPage = currentUrlPage();
+applyUrlState(initialPage);
+getLunar(); //调用月历页面生成函数
+showPage(initialPage, true);
+syncPageUrl(initialPage, true);
+pageAutoRenderReady = true;
+renderPageOnFirstShow(activePage);
+urlSyncEnabled = true;
+window.addEventListener('popstate', function(){
+  var pg = currentUrlPage(), old = urlSyncEnabled;
+  urlSyncEnabled = false;
+  applyUrlState(pg);
+  if(pg==1) getLunar();
+  showPage(pg, true);
+  urlSyncEnabled = old;
+});
+
 /**********************
 命理八字计算
 **********************/
@@ -1130,21 +1217,6 @@ function getLunar(){ //月历页面生成
   if(activePage==1) syncActivePageUrl(false);
 }
 
-var initialPage = currentUrlPage();
-applyUrlState(initialPage);
-getLunar(); //调用月历页面生成函数
-showPage(initialPage, true);
-syncPageUrl(initialPage, true);
-urlSyncEnabled = true;
-window.addEventListener('popstate', function(){
-  var pg = currentUrlPage(), old = urlSyncEnabled;
-  urlSyncEnabled = false;
-  applyUrlState(pg);
-  if(pg==1) getLunar();
-  showPage(pg, true);
-  urlSyncEnabled = old;
-});
-
 /**********************
 年历面页生成
 **********************/
@@ -1181,9 +1253,9 @@ function getNianLiN(){ //dy起始年份偏移数
 **********************/
 function tick() { //即时坐标计算
   var now = new Date();
-  show_clock(now);
-  zb_calc();
-  window.setTimeout("tick()", 1000);
+  try{ show_clock(now); }catch(e){}
+  try{ zb_calc(); }catch(e){}
+  window.setTimeout(tick, 1000);
 }
 tick(); //触发时钟
 
