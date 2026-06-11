@@ -1,10 +1,11 @@
 <html>
 <head>
-<title>寿星天文历 国际版</title>
+<title>寿星万年历 国际版</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="keywords" content="寿星天文历;寿星万年历;黄历;农历;农历计算;算法;天文算法;天文历;万年历;伊斯兰历;回历;节气;交节时刻">
-<meta name="description" content="寿星万年历是一个免费在线万年历工具，提供公历和农历日期的查询、天文历查询、传统节日查询、节气查询等功能。">
+<meta name="keywords" content="寿星万年历国际版;寿星天文历国际版;黄历;农历;农历计算;算法;天文算法;天文历;万年历;伊斯兰历;回历;节气;交节时刻">
+<meta name="description" content="寿星万年历(国际版)是一个免费的在线万年历工具，提供公历和农历日期的查询、天文历查询、传统节日查询、节气查询等功能。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 <script src="calendar-core.js"></script>
 
@@ -27,13 +28,13 @@
 <td>
   <!--软件名称-->
   <span class="brand-mark">
-    <svg viewBox="0 0 32 32" role="img" aria-label="寿星天文历 国际版">
+    <svg viewBox="0 0 32 32" role="img" aria-label="寿星万年历 国际版">
       <circle cx="16" cy="16" r="14" fill="#eff6ff"/>
       <path d="M16 4.5a11.5 11.5 0 1 0 0 23 8.2 8.2 0 1 1 0-23Z" fill="#2563eb"/>
       <circle cx="22" cy="9.5" r="2.2" fill="#f59e0b"/>
       <path d="M7 21.5c5.2-1.4 11.1-1.4 18 0" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
     </svg>
-    <span>寿星天文历 国际版</span>
+    <span>寿星万年历 国际版</span>
   </span>
 </td>
 <td align=right>
@@ -61,16 +62,16 @@
   </div>
   <div class="top-control-group location-group">
     <!--经纬选择--><select id="Sel1" onchange="change()"></select><select id="Sel2" onchange="change2()"></select>
-    <span class="meta"><!--经度纬度--><span id="Cal_zdzb"></span><!--地方时间-->地方时间:<span id="Clock1"></span></span>
+    <span class="meta"><!--经度纬度--><span id="Cal_zdzb"></span><!--地方时间--><span class="local-time">地方时间:<span id="Clock1"></span></span></span>
   </div>
 </div>
 <div align=right id="tools"><span class="cua">
-<a href="javascript:showPage(6)">天象</a>
-<a href="javascript:showPage(7)">恒星</a>
-<a href="javascript:showPage(8)">气朔</a>
-<a href="javascript:showPage(9)">升降</a>
-<a href="javascript:showPage(11)">工具</a>
-<a href="javascript:showPage(12)">常数</a>
+<a href="javascript:showPageFromMenu(6)" data-page="6">天象</a>
+<a href="javascript:showPageFromMenu(7)" data-page="7">恒星</a>
+<a href="javascript:showPageFromMenu(8)" data-page="8">气朔</a>
+<a href="javascript:showPageFromMenu(9)" data-page="9">升降</a>
+<a href="javascript:showPageFromMenu(11)" data-page="11">工具</a>
+<a href="javascript:showPageFromMenu(12)" data-page="12">常数</a>
 </span></div>
 </td></tr>
 
@@ -89,10 +90,12 @@
 <!--月历表-->
 <tr id="page1">
  <td width="35%" valign="middle" class="dRig summary-column">
-  <!--日期摘要--><div align="center" id="Cal_day"></div><br>
-  <!--提示--><div align="center" id="Cal_tip"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询 BCE 4713 至 9999 年，<b>BCE 722 年以后为实历</b></div><br>
-  <!--日月出没--><div align="center" id="Cal5"></div><br>
-  <!--月相节气--><div align="center" id="Cal4"></div>
+  <div class="summary-stack">
+   <!--日期摘要--><div align="center" id="Cal_day"></div>
+   <!--日月出没--><div align="center" id="Cal5"></div>
+   <!--月相节气--><div align="center" id="Cal4"></div>
+   <!--提示--><div align="center" id="Cal_tip"><b>提示：</b>日月升降是地方时间，气朔时刻是北京时间<br>有效查询 BCE 4713 至 CE 9999 年，<b>BCE 722 年以后为实历</b></div>
+  </div>
  </td>
  <td width="65%" valign="top">
 <table width="100%" cellspacing="0" cellpadding="0">

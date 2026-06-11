@@ -688,11 +688,17 @@ function syncActivePageUrl(replace){
   if(urlSyncEnabled) syncPageUrl(activePage, replace);
 }
 function updateTopNavActive(pg){
-  var tabs = document.querySelectorAll('.top-nav .nav-tab[data-page]'), i, page;
+  var tabs = document.querySelectorAll('.top-nav .nav-tab[data-page]'), menuLinks, i, page;
   for(i=0;i<tabs.length;i++){
     page = normalizePageParam(tabs[i].getAttribute('data-page'));
     if(page==pg) tabs[i].classList.add('is-active');
     else tabs[i].classList.remove('is-active');
+  }
+  menuLinks = document.querySelectorAll('#tools a[data-page]');
+  for(i=0;i<menuLinks.length;i++){
+    page = normalizePageParam(menuLinks[i].getAttribute('data-page'));
+    if(page==pg) menuLinks[i].classList.add('is-active');
+    else menuLinks[i].classList.remove('is-active');
   }
 }
 function safePageRender(fn){
@@ -702,7 +708,7 @@ function safePageRender(fn){
 function renderPageOnFirstShow(pg){
   if(pg==4 && !Cc_tb.value) safePageRender(function(){ dfRS(0); });
   if(pg==5 && !Cd_tab.value) safePageRender(function(){ pCalc(); });
-  if(pg==10 && !Cp10_tz.innerHTML) safePageRender(function(){ tu2_calc(2); });
+  if(pg==10 && !Cp10_b1.innerHTML) safePageRender(function(){ tuGL_search(0); });
 }
 function showPage(pg, skipUrl){
   pg = normalizePageParam(pg);
@@ -750,10 +756,53 @@ function tools(){
   }
 }
 
+function closeTools(){
+  var el=document.all.tools, shell=document.querySelector('.top-shell');
+  if(!el) return;
+  el.style.display="none";
+  if(shell) shell.classList.remove('is-menu-open');
+}
+
+function showPageFromMenu(pg){
+  showPage(pg);
+  closeTools();
+}
+
 function readme(){
   var el=document.all.help;
   if(getComputedStyle(el).display=="none") showHelp(1);
   else showHelp(0);
+}
+
+function bindEnterAction(ids, action){
+  var i, ob;
+  for(i=0;i<ids.length;i++){
+    ob = document.getElementById(ids[i]);
+    if(!ob) continue;
+    ob.addEventListener('keydown', function(e){
+      if(e.key!='Enter' || e.isComposing) return;
+      e.preventDefault();
+      action();
+    });
+  }
+}
+
+function initEnterKeyActions(){
+  bindEnterAction(['Cal_y','Cal_m'], function(){ getLunar(); });
+  bindEnterAction(['Cp2_y','Cp2_n'], function(){ getNianLi(0); });
+  bindEnterAction(['Cb_y','Cb_m','Cb_d','Cb_t'], function(){
+    Cal_rt.checked=false;
+    Cal_pause.checked=true;
+    setTimeout(function(){ window.setTimeout('tu_calc(2)',0); },200);
+  });
+  bindEnterAction(['Cc_y','Cc_m','Cc_d'], function(){ dfRS(0); });
+  bindEnterAction(['Cd_y','Cd_m','Cd_d','Cd_t','Cd_dt','Cd_n'], function(){ pCalc(); });
+  bindEnterAction(['Cf_y','Cf_m','Cf_d','Cf_t','Cf_dt','Cf_n'], function(){ aCalc(); });
+  bindEnterAction(['Cp9_y','Cp9_m','Cp9_d'], function(){ shengjiang(); });
+  bindEnterAction(['Cp10_y','Cp10_m','Cp10_an'], function(){ tuGL_search(0); });
+  bindEnterAction(['Cml_y','Cml_m','Cml_d','Cml_his'], function(){ ML_calc(); });
+  bindEnterAction(['GJ1_y','GJ1_m','GJ1_d','GJ1_t'], function(){ GJ1_calc2(0); });
+  bindEnterAction(['GJ1_y2','GJ1_m2','GJ1_d2','GJ1_t2'], function(){ GJ1_calc2(3); });
 }
 
 /********************
@@ -806,6 +855,7 @@ function setDefaultDateInputsToToday(){
 set_date_screen(0);
 setDefaultDateInputsToToday();
 normalizeYearInputs();
+initEnterKeyActions();
 
 /****************
 外地时间选择
@@ -1376,11 +1426,20 @@ var openccApplying = false;
 var openccAttrNames = ['title', 'aria-label', 'placeholder'];
 var openccButtonTypes = { button:1, submit:1, reset:1 };
 var openccCustomDict = [
-  ['天文历', '天文曆'],
-  ['本历', '本曆'],
-  ['历算', '曆算'],
-  ['实历', '實曆']
+  ['本歷', '本曆'],
+  ['實歷', '實曆']
 ];
+
+function applyOpenCCOverrides(value){
+  var i, next = String(value);
+  for(i=0;i<openccCustomDict.length;i++) next = next.split(openccCustomDict[i][0]).join(openccCustomDict[i][1]);
+  return next;
+}
+
+function convertOpenCCValue(value, converter){
+  var next = converter ? converter(value) : value;
+  return converter ? applyOpenCCOverrides(next) : next;
+}
 
 function getSavedChineseMode(){
   var params = new URLSearchParams(location.search);
@@ -1437,7 +1496,7 @@ function convertOpenCCTextNode(node, refreshOriginal){
     openccTextOriginals.set(node, original);
   }
   var converter = chineseMode=='tw' ? getOpenCCConverter() : null;
-  var next = converter ? converter(original) : original;
+  var next = convertOpenCCValue(original, converter);
   if(node.nodeValue !== next) node.nodeValue = next;
 }
 
@@ -1451,7 +1510,7 @@ function convertOpenCCAttr(el, name, refreshOriginal){
   var originals = openccOriginalAttrs(el);
   if(originals[name]===undefined || refreshOriginal) originals[name] = el.getAttribute(name);
   var converter = chineseMode=='tw' ? getOpenCCConverter() : null;
-  var next = converter ? converter(originals[name]) : originals[name];
+  var next = convertOpenCCValue(originals[name], converter);
   if(el.getAttribute(name) !== next) el.setAttribute(name, next);
 }
 
@@ -1459,14 +1518,14 @@ function isOpenCCOwnTextMutation(node){
   var original = openccTextOriginals.get(node), converter;
   if(original===undefined) return false;
   converter = getOpenCCConverter();
-  return !!converter && node.nodeValue === converter(original);
+  return !!converter && node.nodeValue === convertOpenCCValue(original, converter);
 }
 
 function isOpenCCOwnAttrMutation(el, name){
   var originals = el._openccOriginalAttrs, converter;
   if(!originals || originals[name]===undefined || !el.hasAttribute(name)) return false;
   converter = getOpenCCConverter();
-  return !!converter && el.getAttribute(name) === converter(originals[name]);
+  return !!converter && el.getAttribute(name) === convertOpenCCValue(originals[name], converter);
 }
 
 function convertOpenCCElementAttrs(el, refreshOriginal){
@@ -1553,7 +1612,8 @@ function initChineseMode(){
       }
       openccObserver.takeRecords();
       openccApplying = false;
-    }).observe(document.body, {
+    });
+    openccObserver.observe(document.body, {
       childList:true,
       subtree:true,
       characterData:true,
