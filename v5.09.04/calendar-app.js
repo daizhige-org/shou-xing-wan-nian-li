@@ -1624,3 +1624,9 @@ function initChineseMode(){
 }
 
 initChineseMode();
+
+document.addEventListener('keydown', function(e){
+  if(e.key=='Escape' && document.body.classList.contains('is-help-open')){
+    showHelp(0);
+  }
+});
