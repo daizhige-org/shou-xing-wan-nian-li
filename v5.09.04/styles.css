@@ -504,7 +504,7 @@ body {
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
@@ -513,6 +513,15 @@ body {
  #help .help-modal-head b {
   font-size: 16px;
   font-weight: 500;
+ }
+ #help .help-manual-link {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+ }
+ #help .help-manual-link:hover {
+  text-decoration: underline;
  }
  #help .help-modal-head button {
   margin: 0;
