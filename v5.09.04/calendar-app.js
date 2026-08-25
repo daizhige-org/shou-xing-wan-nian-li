@@ -1394,7 +1394,8 @@ function tick() { //即时坐标计算
   var now = new Date();
   try{ show_clock(now); }catch(e){}
   try{ zb_calc(); }catch(e){}
-  window.setTimeout(tick, 1000);
+  var ms = Date.now(); //取算完之后的时刻,计算耗时也一并扣掉
+  window.setTimeout(tick, Math.floor(ms/1000+1)*1000 - ms); //对齐到下一个整秒,避免累积漂移
 }
 tick(); //触发时钟
 
