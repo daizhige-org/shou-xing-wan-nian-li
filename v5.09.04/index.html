@@ -147,7 +147,7 @@
 　经度<input id="Cb_J" type="text" size="10" value="0">° 纬度<input id="Cb_W" type="text" size="9" value="0">° 海拔<input id="Cb_high" type="text" size="2" value="0">km<br>
 　<a title="勾选此项启用面朝北模式，取消勾选为面朝南模式">北/南<input id="Cb_bei" type="checkbox"></a> |
  <a title="勾选此项启用大地坐标模式，取消勾选为站心坐标模式">地/站<input id="Cb_sjzb" type="checkbox"></a> |
- UTC/TD<input id="Cb_ut" type="checkbox" checked=""> |
+ <a title="表中时刻所用的时间基准">时间<select id="Cb_ut"><option value="0" selected="">当地时区</option><option value="1">UTC</option><option value="2">TD</option></select></a> |
  NASA<input id="Cb_nasa" type="checkbox"> |
  日食路径<input id="Cb_phSave" type="checkbox"> |
  <a title="勾选此项后点击 [现在] 启用实时模式">实时<input id=Cal_rt type=checkbox></a><br>
@@ -187,7 +187,8 @@
 <tr id="page4"><td class="dBot2" colspan="2" align="center">
  公元<input id="Cc_y" type="text" size="4" value="2008">年<input id="Cc_m" type="text" size="2" value="8" maxleng="2">月<input id="Cc_d" type="text" size="2" value="1">日
  <input type="button" value="&lt;-" onclick="dfRS(1)"><input type="button" value="朔" onclick="dfRS(0)"><input type="button" value="+&gt;" onclick="dfRS(2)">
- NASA<input id="Cc_nasa" type="checkbox"><br>
+ NASA<input id="Cc_nasa" type="checkbox">
+ <a title="表中时刻所用的时间基准">时间<select id="Cc_ut"><option value="0" selected="">当地时区</option><option value="1">UTC</option><option value="2">TD</option></select></a><br>
  <textarea cols="104" rows="12" id="Cc_db">*地名,纬度,经度,海拔(米)
 北京, 39.93, 116.37,  31  # 天津, 39.14, 117.19,   3  # 太原, 37.87, 112.56, 778
 沈阳, 41.78, 123.41,  41  # 长春, 43.89, 125.31, 237  # 上海, 31.23, 121.46,   5
@@ -216,7 +217,7 @@
   <option value="9">太阳</option><option value="10">月亮</option>
  </select> 
  <input id="Cd_y" type="text" size="4" value="2008">年<input id="Cd_m" type="text" size="2" value="1" maxleng="2">月<input id="Cd_d" type="text" size="2" value="1">日 <input id="Cd_t" type="text" size="8" value="00:00:00">
- UTC/TD<input id="Cd_ut" type="checkbox" checked="">　<a href="javascript:showHelp(4)">帮助</a><br>
+ <a title="表中时刻所用的时间基准">时间<select id="Cd_ut"><option value="0" selected="">当地时区</option><option value="1">UTC</option><option value="2">TD</option></select></a>　<a href="javascript:showHelp(4)">帮助</a><br>
  经度<input id="Cd_J" type="text" size="10" value="0">°
  纬度<input id="Cd_W" type="text" size="8" value="0">°
  间隔<input id="Cd_dt" type="text" size="4" value="1">(天)
@@ -262,7 +263,7 @@
 <select id="Cf_xk" onchange="javascript:showHXK(this.options[this.selectedIndex].value)"><option value="0">库0</option><option value="1">库1</option><option value="1000">仙女座</option><option value="1005">唧筒座</option><option value="1010">天燕座</option><option value="1015">宝瓶座</option><option value="1020">天鹰座</option><option value="1025">天坛座</option><option value="1030">白羊座</option><option value="1035">御夫座</option><option value="1040">牧夫座</option><option value="1045">雕具座</option><option value="1050">鹿豹座</option><option value="1055">巨蟹座</option><option value="1060">猎犬座</option><option value="1065">大犬座</option><option value="1070">小犬座</option><option value="1075">摩羯座</option><option value="1080">船底座</option><option value="1085">仙后座</option><option value="1090">半人马</option><option value="1095">仙王座</option><option value="1100">鲸鱼座</option><option value="1105">堰蜒座</option><option value="1110">圆规座</option><option value="1115">天鸽座</option><option value="1120">后发座</option><option value="1125">南冕座</option><option value="1130">北冕座</option><option value="1135">乌鸦座</option><option value="1140">巨爵座</option><option value="1145">南十字</option><option value="1150">天鹅座</option><option value="1155">海豚座</option><option value="1160">剑鱼座</option><option value="1165">天龙座</option><option value="1170">小马座</option><option value="1175">波江座</option><option value="1180">天炉座</option><option value="1185">双子座</option><option value="1190">天鹤座</option><option value="1195">武仙座</option><option value="1200">时钟座</option><option value="1205">长蛇座</option><option value="1210">水蛇座</option><option value="1215">印第安</option><option value="1220">蝎虎座</option><option value="1225">狮子座</option><option value="1230">小狮座</option><option value="1235">天兔座</option><option value="1240">天秤座</option><option value="1245">豺狼座</option><option value="1250">天猫座</option><option value="1255">天琴座</option><option value="1260">山案座</option><option value="1265">显微镜</option><option value="1270">麒麟座</option><option value="1275">苍蝇座</option><option value="1280">矩尺座</option><option value="1285">南极座</option><option value="1290">蛇夫座</option><option value="1295">猎户座</option><option value="1300">孔雀座</option><option value="1305">飞马座</option><option value="1310">英仙座</option><option value="1315">凤凰座</option><option value="1320">绘架座</option><option value="1325">双鱼座</option><option value="1330">南鱼座</option><option value="1335">船尾座</option><option value="1340">罗盘座</option><option value="1345">网罟座</option><option value="1350">天箭座</option><option value="1355">人马座</option><option value="1360">天蝎座</option><option value="1365">玉夫座</option><option value="1370">盾牌座</option><option value="1375">巨蛇座</option><option value="1380">六分仪</option><option value="1385">金牛座</option><option value="1390">望远镜</option><option value="1395">三角座</option><option value="1400">南三角</option><option value="1405">杜鹃座</option><option value="1410">大熊座</option><option value="1415">小熊座</option><option value="1420">船帆座</option><option value="1425">室女座</option><option value="1430">飞鱼座</option><option value="1435">狐狸座</option></select>
 <select id="Cf_lx"><option value="0">视位置</option><option value="1">站坐标</option><option value="2">平位置</option></select>
 <input id="Cf_y" type="text" size="4" value="2008">年<input id="Cf_m" type="text" size="2" value="1" maxleng="2">月<input id="Cf_d" type="text" size="2" value="1">日 <input id="Cf_t" type="text" size="8" value="00:00:00">
-UTC/TD<input id="Cf_ut" type="checkbox" checked="">
+<a title="表中时刻所用的时间基准">时间<select id="Cf_ut"><option value="0" selected="">当地时区</option><option value="1">UTC</option><option value="2">TD</option></select></a>
 略短章<input id="Cf_nsn" type="checkbox">　<a href="javascript:showHelp(6)">帮助</a><br>
 经度<input id="Cf_J" type="text" size="10" value="0">°
 纬度<input id="Cf_W" type="text" size="8" value="0">°

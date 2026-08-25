@@ -3,6 +3,92 @@ var lun = new Lunar(); //月历全局对象
 var curJD; //现在日期
 var curTZ; //当前时区
 
+/*********************
+时间基准换算 (0=当地时区, 1=UTC世界时, 2=TD力学时)
+"当地时区"指页面顶部地点选择框所选地点的时区(IANA时区名,随机场资料给出),
+即页面右上角"地方时间"所用的时区。时差不自带夏令时规则表,而是向浏览器内置的
+IANA时区库(Intl)查询,故夏令时、历史时制变更等均按该库为准,且随浏览器更新,
+无须本程序维护。
+1900年以前各地通行的是按经度定的地方平时,时区尚未成立,时区库此时给出的是带零头的
+地方平时(如洛杉矶-7:52:58),对本程序无意义,故一律改用该时区的标准时差。
+*********************/
+var cs_tzY0=1900;  //早于该年不使用时区库,只用标准时差
+var tzFmtBuf={};   //Intl格式化物件缓存,避免反复创建
+var tzStdBuf={};   //各时区标准时差缓存
+function tzFmt(tz,lx){ //取(或创建)某时区的格式化物件,lx为longOffset或short
+ var k=tz+'|'+lx;
+ if(tzFmtBuf[k]===undefined){
+  try{ tzFmtBuf[k]=new Intl.DateTimeFormat('en-US',{timeZone:tz, timeZoneName:lx}); }
+  catch(e){ tzFmtBuf[k]=null; } //不支持Intl或时区名无效
+ }
+ return tzFmtBuf[k];
+}
+function tzQuery(ut,tz,lx){ //向时区库查询ut时刻的时区标记,失败返回''
+ var f=tzFmt(tz,lx);  if(!f) return '';
+ try{ return f.format(new Date((ut+10957.5)*86400000)).split(' ').pop(); }
+ catch(e){ return ''; } //日期超出Date范围等
+}
+function tzOfsUT(ut,tz){ //时区库中ut时刻tz的时差(小时,东为正),查不到返回null
+ var s=tzQuery(ut,tz,'longOffset'); //如 GMT-07:00
+ if(s=='GMT') return 0;
+ var r=s.match(/GMT([+-])(\d+)(?::(\d\d))?(?::(\d\d))?/);
+ if(!r) return null;
+ return (r[1]=='-'?-1:1)*( (r[2]-0) + ((r[3]||0)-0)/60 + ((r[4]||0)-0)/3600 );
+}
+function tzStdOfs(tz){ //某时区的标准时差(不含夏令时):取当年1月与7月中较小者,南北半球均成立
+ if(tzStdBuf[tz]===undefined){
+  var y=JD.DD((new Date())/86400000-10957.5+J2000).Y;
+  var a=tzOfsUT(JD.JD(y,1,1)-J2000,tz), b=tzOfsUT(JD.JD(y,7,1)-J2000,tz);
+  tzStdBuf[tz] = (a===null||b===null) ? null : Math.min(a,b);
+ }
+ return tzStdBuf[tz];
+}
+function localTZname(){ //当前地点选择框所选地点的IANA时区名
+ return (typeof Sel2!='undefined' && Sel2.timeZone) ? Sel2.timeZone : '';
+}
+function zoneOfs(ut){ //所选地点在ut时刻的时差(小时,东为正)
+ var h, tz=localTZname();
+ if(tz){
+  if(JD.DD(ut+J2000).Y>=cs_tzY0){ h=tzOfsUT(ut,tz); if(h!==null) return h; }
+  h=tzStdOfs(tz); if(h!==null) return h; //1900年前只用标准时差
+ }
+ return -curTZ; //无时区资料时退回浏览器所在时区(curTZ西为正,与此处相反)
+}
+function zoneStr(ut){ //所选地点在ut时刻的时区名称:有当地缩写则用之(如PDT),否则用UTC+8式
+ var h,s,m, tz=localTZname();
+ if(tz && JD.DD(ut+J2000).Y>=cs_tzY0){
+  s=tzQuery(ut,tz,'short');    //如 PDT、GMT+8
+  if(/^[A-Za-z]{2,5}$/.test(s)) return s;
+ }
+ h=zoneOfs(ut); s=(h<0?'-':'+');
+ h=Math.abs(h); m='0'+Math.round((h-int2(h))*60); h=int2(h);
+ return 'UTC'+s+h+(m.substr(m.length-2,2)=='00' ? '' : ':'+m.substr(m.length-2,2));
+}
+function nowTD(){ //当前时刻的力学时(J2000起算)
+ var ut=(new Date())/86400000-10957.5;
+ return ut+dt_T(ut);
+}
+function UT2scr(ut,tb){ //世界时转屏幕时间
+ if(tb==2) return ut+dt_T(ut);
+ if(tb==1) return ut;
+ return ut+zoneOfs(ut)/24;
+}
+function TD2scr(jd,tb){ //力学时转屏幕时间
+ if(tb==2) return jd;
+ return UT2scr(jd-dt_T(jd),tb);
+}
+function scr2TD(jd,tb){ //屏幕时间转力学时
+ if(tb==2) return jd;
+ var ut=jd;
+ if(tb==0) ut=jd-zoneOfs(jd-zoneOfs(jd)/24)/24; //区时转世界时,迭代一次以处理夏令时边界
+ return ut+dt_T(ut);
+}
+function tbStr(jd,tb){ //时间基准名称(jd为力学时)
+ if(tb==2) return ' TD';
+ if(tb==1) return ' UTC';
+ return ' '+zoneStr(jd-dt_T(jd));
+}
+
 function showHXK0(){ //显示恒星库名称例表
  var i,n,c;
  for(i=0;i<HXK.length;i++){
@@ -30,7 +116,7 @@ showHXK0();
 showHXK(0);
 function aCalc(){ //恒星计算
  var jd = JD.JD( year2Ayear(Cf_y.value), Cf_m.value-0, (Cf_d.value-0)+timeStr2hour(Cf_t.value)/24 ) - J2000;  //取屏幕时间
- if(Cf_ut.checked) jd += curTZ/24+dt_T(jd); //转为力学时
+ jd = scr2TD(jd, Cf_ut.value-0); //转为力学时
  var dt = Cf_dt.value-0, n = Cf_n.value-0;
  var Q  = Cf_nsn.checked ? 35 : 0;                     //小于35天的称短周期项
  var lx = Cf_lx.options[Cf_lx.selectedIndex].value-0;  //坐标类型
@@ -43,7 +129,7 @@ function aCalc(){ //恒星计算
 }
 function txFormatT(t){ //天象时间格式化输出
   var t1 = t*36525 + J2000;
-  var t2 = t1  - dt_T(t1-J2000) - curTZ/24;
+  var t2 = t1 - dt_T(t1-J2000); //世界时
   return JD.JD2str(t1) +' TD '
        + JD.JD2str(t2).substr(9,11) +' UT ';
 }
@@ -119,7 +205,7 @@ function tianXiang(xm,xm2){
 
 function pCalc(xm){ //行星星历计算
  var jd = JD.JD( year2Ayear(Cd_y.value), Cd_m.value-0, (Cd_d.value-0)+timeStr2hour(Cd_t.value)/24 ) - J2000;  //取屏幕时间
- if(Cd_ut.checked) jd += curTZ/24+dt_T(jd); //转为力学时
+ jd = scr2TD(jd, Cd_ut.value-0); //转为力学时
  var xt = Cd_xt.options[Cd_xt.selectedIndex].value;
  var dt = Cd_dt.value-0, n = Cd_n.value-0;
  var L  = Cd_J.value/180*Math.PI; //地标
@@ -158,9 +244,10 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
  var jd; //J2000起算的儒略日数(当地时间)
  var vJ = Cb_J.value/radd;
  var vW = Cb_W.value/radd;
+ var tb = Cb_ut.value-0; //时间基准
  //取时间
  jd = JD.JD( year2Ayear(Cb_y.value), Cb_m.value-0, (Cb_d.value-0)+timeStr2hour(Cb_t.value)/24 ) - J2000;  //取屏幕时间
- if(ly==0) jd = (new Date())/86400000-10957.5-curTZ/24, Cb_ut.checked=true; //取现在时间(UTC)
+ if(ly==0) jd = TD2scr(nowTD(), tb); //取现在时间
  if(Cal_rt.checked) window.setTimeout("tu_calc(0)", 200);
  if(ly==1) jd -= Cb_step.value/86400;
  if(ly==2); //常规取时间
@@ -174,7 +261,7 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
  if(ly==4||ly==5||ly==6) jd = XL.MS_aLon_t2( Math.floor((jd+8)/29.5306)*pi2 )*36525;
  if(ly==7||ly==8||ly==9) jd = XL.MS_aLon_t2( Math.floor((jd-4)/29.5306)*pi2+Math.PI )*36525;
  if(ly>=4&&ly<=9){
-   if(Cb_ut.checked) jd -= curTZ/24+dt_T(jd);
+   jd = TD2scr(jd, tb);
  }
 
  //置时间
@@ -184,7 +271,7 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
  Cb_d.value = ts.substr(9,2);
  Cb_t.value = ts.substr(12,8);
 
- if(Cb_ut.checked) jd += curTZ/24+dt_T(jd); //转为力学时
+ jd = scr2TD(jd, tb); //转为力学时
  var i;
 
  msc.calc(jd,vJ,vW,Cb_high.value-0);
@@ -243,7 +330,7 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
   var s='时间表 (日'+rsPL.LX+'食)<br>'
   for(i=0;i<5;i++){
    jd=rsPL.sT[i]; if(!jd) continue;
-   if(Cb_ut.checked) jd -= curTZ/24+dt_T(jd),td=' UTC'; //转为UTC(地方时间)
+   td = tbStr(jd, tb), jd = TD2scr(jd, tb); //按所选时间基准换算
    s+=mc[i]+':'+JD.JD2str(jd+J2000)+td+'<br>';
   }
   s+='时长: '+m2fm(rsPL.dur*86400,1,1)+'<br>';
@@ -270,7 +357,7 @@ function tu_calc(ly){ //ly是取时间的方式,xm是计算的项目
   var s='时间表(月'+ysPL.LX+'食)<br>';
   for(i=0;i<7;i++){
    jd=ysPL.lT[i]; if(!jd) continue;
-   if(Cb_ut.checked) jd -= curTZ/24+dt_T(jd),td=' UTC'; //转为UTC(地方时间)
+   td = tbStr(jd, tb), jd = TD2scr(jd, tb); //按所选时间基准换算
    s+=mc[i]+':'+JD.JD2str(jd+J2000)+td+'<br>';
   }
   s+='食分:'+ysPL.sf.toFixed(5)+'<br>';
@@ -306,7 +393,7 @@ function tu2_xx(jd){ //转到详细日食图表页面
  Cb_m.value = ts.substr(6,2);
  Cb_d.value = ts.substr(9,2);
  Cb_t.value = ts.substr(12,8);
- Cb_ut.checked = false;
+ Cb_ut.value = 2; //力学时
  showPage(3);
 }
 function tuGL_search(fs){ //查找日食
@@ -450,12 +537,13 @@ function tu3_yingzi(xm){ //显示影子
 
 function dfRS(ly){ //地方日食表生成
  var jd = JD.JD( year2Ayear(Cc_y.value), Cc_m.value-0, (Cc_d.value-0) ) - J2000;  //取屏幕时间
+ var tb = Cc_ut.value-0; //时间基准
  if(ly==1) jd -=29.53;
  if(ly==2) jd +=29.53;
  jd = XL.MS_aLon_t2( Math.floor((jd+8)/29.5306)*pi2 )*36525;
 
  //置时间
- var ts=JD.JD2str(jd+J2000-curTZ/24-dt_T(jd));
+ var ts=JD.JD2str(TD2scr(jd,tb)+J2000);
  Cc_y.value = ts.substr(0,5)-0;
  Cc_m.value = ts.substr(6,2);
  Cc_d.value = ts.substr(9,2);
@@ -463,6 +551,7 @@ function dfRS(ly){ //地方日食表生成
  rsPL.nasa_r=0; if(Cc_nasa.checked) rsPL.nasa_r=1; //视径选择
  var i,j,t,c,ou;
  if(navigator.userAgent.indexOf("Mobile") != -1){ou='地名      食分       初亏      食甚       复圆       食既       生光      日出       日落      P1,V1    P2,V2\r\n';}else{if(navigator.userAgent.indexOf("NT 6") != -1){ou='地名      食分      初亏      食甚       复圆      食既      生光      日出      日落     P1,V1    P2,V2\r\n';}else{ou='地名       食分      初亏      食甚       复圆      食既      生光       日出      日落     P1,V1    P2,V2\r\n';}}
+ ou = '时间基准:'+tbStr(jd,tb)+'\r\n' + ou; //表中各时刻所用的时间基准
  var s = Cc_db.value;
  s = s.replace(/\n/g,'#').replace(/[ \r]/g,'');
  s = s.split('#');
@@ -476,11 +565,11 @@ function dfRS(ly){ //地方日食表生成
   ou += rsPL.sflx;
   for(j=0;j<5;j++){ //初亏,食甚,复圆,食既,生光
    t  = rsPL.sT[j]; if(!t) {ou+='  --:--:--'; continue;}
-   t = t - curTZ/24 -dt_T(t) +J2000; //转为UTC(地方时间)
+   t = TD2scr(t,tb) + J2000; //按所选时间基准换算
    ou+='  '+JD.JD2str(t).substr(12,8);
   }
-  ou += '  '+JD.timeStr(rsPL.sun_s -curTZ/24+J2000);
-  ou += '  '+JD.timeStr(rsPL.sun_j -curTZ/24+J2000);
+  ou += '  '+JD.timeStr(UT2scr(rsPL.sun_s,tb)+J2000);
+  ou += '  '+JD.timeStr(UT2scr(rsPL.sun_j,tb)+J2000);
   ou += '  '+(rsPL.P1*radd).toFixed(0).padStart(3,' ')+','+(rsPL.V1*radd).toFixed(0).padStart(3,' ');
   ou += '  '+(rsPL.P2*radd).toFixed(0).padStart(3,' ')+','+(rsPL.V2*radd).toFixed(0).padStart(3,' ');
   ou += '\r\n';
