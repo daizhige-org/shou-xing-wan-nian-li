@@ -711,6 +711,12 @@ body {
   font-size: 14px;
   line-height: 1.7;
  }
+ .form-note {
+  margin: 6px 0 2px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+ }
  #Cal_tip b {
   font-weight: 500;
  }

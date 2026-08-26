@@ -375,6 +375,7 @@
  <input type="text" id="Cml_his" size="8" value="12:00:00">
  <input type="button" value="确定" onclick="ML_calc()">
  <input type="button" value="此刻" onclick="ML_settime()">
+ <div class="form-note">输入的时刻按顶部地点选择框所选地点的区时解释（含夏令时与历史时制变更）。年柱以立春、月柱以节气界定，与时区、地点无关；日柱与时辰以该地经度换算的真太阳时 23 点为界。</div>
  <div id="Cal6"></div><hr>
  儒略日计算1： JD <input id="GJ1_jd" type="text" size="10" value="2451545"> <input type="button" value="确定" onclick="GJ1_calc1()"> <span id="GJ1_out"></span><br>
  儒略日计算2：公元<input id="GJ1_y" type="text" size="4" value="2008">年<input id="GJ1_m" type="text" size="2" value="1" maxleng="2">月<input id="GJ1_d" type="text" size="2" value="1">日<input id="GJ1_t" type="text" size="8" value="12:00:00">  <input type="button" value="转儒略日" onclick="GJ1_calc2(0)"> <input type="button" value="减去上行" onclick="GJ1_calc2(1)"> <input type="button" value="年内积日" onclick="GJ1_calc2(2)"> <input type=button value="今天" onclick='GJ1_now()'><br>

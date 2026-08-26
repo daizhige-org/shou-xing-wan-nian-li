@@ -77,11 +77,17 @@ function TD2scr(jd,tb){ //力学时转屏幕时间
  if(tb==2) return jd;
  return UT2scr(jd-dt_T(jd),tb);
 }
+function scr2UT(jd){ //当地区时转世界时,迭代一次以处理夏令时边界
+ return jd-zoneOfs(jd-zoneOfs(jd)/24)/24;
+}
 function scr2TD(jd,tb){ //屏幕时间转力学时
  if(tb==2) return jd;
- var ut=jd;
- if(tb==0) ut=jd-zoneOfs(jd-zoneOfs(jd)/24)/24; //区时转世界时,迭代一次以处理夏令时边界
+ var ut=(tb==0) ? scr2UT(jd) : jd;
  return ut+dt_T(ut);
+}
+function nowScr(){ //当前时刻在当地时区(地点框所选地)的钟表时间,J2000起算
+ var ut=(new Date())/86400000-10957.5;
+ return ut+zoneOfs(ut)/24;
 }
 function tbStr(jd,tb){ //时间基准名称(jd为力学时)
  if(tb==2) return ' TD';
@@ -899,8 +905,8 @@ function initEnterKeyActions(){
 *********************/
 function set_date_screen(fw){ //把当前时间置于屏幕的便入框之中
  var now=new Date();
- curTZ = now.getTimezoneOffset()/60; //时区 -8为北京时
- curJD = now/86400000-10957.5 - curTZ/24; //J2000起算的儒略日数(当前地方时间)
+ curTZ = now.getTimezoneOffset()/60; //时区 -8为北京时,仅作无地点资料时的兜底
+ curJD = nowScr(); //J2000起算的儒略日数(所选地点的当地时间)
  JD.setFromJD(curJD+J2000);
 
  if(!fw||fw==1){
@@ -921,7 +927,8 @@ function setInputValue(id,value){
  if(ob)ob.value=value;
 }
 function setDefaultDateInputsToToday(){
- var now=new Date(),y=Ayear2year(now.getFullYear()),m=now.getMonth()+1,d=now.getDate();
+ JD.setFromJD(nowScr()+J2000); //按所选地点的当地时区取"今天"
+ var y=Ayear2year(JD.Y),m=JD.M,d=JD.D;
  var dates=[
   ['Cb_y','Cb_m','Cb_d'],['Cc_y','Cc_m','Cc_d'],['Cd_y','Cd_m','Cd_d'],
   ['Ce_y','Ce_m','Ce_d'],['Cf_y','Cf_m','Cf_d'],['Cp9_y','Cp9_m','Cp9_d'],
@@ -1203,6 +1210,7 @@ Sel1.selectedIndex = defaultCountry; change();
 var defaultAirport = optionIndexByValue(Sel2, urlAirport);
 if(defaultAirport<0) defaultAirport = 0;
 Sel2.selectedIndex = defaultAirport; change2();
+set_date_screen(0); setDefaultDateInputsToToday(); normalizeYearInputs(); //地点已定,按当地时区重取"今天"
 
 var initialPage = currentUrlPage();
 applyUrlState(initialPage);
@@ -1228,7 +1236,7 @@ function ML_calc(){
  var ob=new Object();
  var t = timeStr2hour(Cml_his.value);
  var jd=JD.JD(year2Ayear(Cml_y.value), Cml_m.value-0, Cml_d.value-0+t/24)
- obb.mingLiBaZi( jd+curTZ/24-J2000, Cp11_J.value/radd, ob ); //八字计算
+ obb.mingLiBaZi( scr2UT(jd-J2000), Cp11_J.value/radd, ob ); //八字计算,输入时刻按所选地点的区时解释
  Cal6.innerHTML =
      '<font color=red><b>[日标]：</b></font>'+'公元 '+Cml_y.value+'-'+Cml_m.value+'-'+Cml_d.value + ' 儒略日数 ' + int2(jd+0.5) + ' 距2000年首' + int2(jd+0.5-J2000) + '日<br>'
    + '<font color=red><b>[八字]：</b></font><font color=blue><b>'    + ob.bz_jn+'</b></font>年 <font color=blue><b>'+ob.bz_jy+'</b></font>月 <font color=blue><b>'+ob.bz_jr+'</b></font>日 <font color=blue><b>'+ob.bz_js+'</b></font>时　真太阳时 <font color=red>' + ob.bz_zty+ '</font><br>'
