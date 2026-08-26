@@ -590,19 +590,19 @@ function shengjiang(){
   var jd = JD.JD( year2Ayear(Cp9_y.value), Cp9_m.value-0, (Cp9_d.value-0)+0.5 ) - J2000;  //取屏幕时间
   var sq = SZJ.L/pi2*24;
 
-  var s="<font color=red>北京时间(转为格林尼治时间请减8小时)：</font><br>", r, c=J2000+8/24;
-
-  r=SZJ.St(jd-sq/24);
-  s +="太阳升起 " + JD.JD2str(r.s+c) + " 太阳降落 " + JD.JD2str(r.j+c)+"<br>";
-  s +="日上中天 " + JD.JD2str(r.z+c) + " 日下中天 " + JD.JD2str(r.x+c)+"<br>";
-  s +="民用天亮 " + JD.JD2str(r.c+c) + " 民用天黑 " + JD.JD2str(r.h+c)+"<br>";
-  s +="航海天亮 " + JD.JD2str(r.c2+c)+ " 航海天黑 " + JD.JD2str(r.h2+c)+"<br>";
-  s +="天文天亮 " + JD.JD2str(r.c3+c)+ " 天文天黑 " + JD.JD2str(r.h3+c)+"<br>";
+  var r=SZJ.St(jd-sq/24), s;
+  var f=function(ut){ return JD.JD2str(UT2scr(ut,0)+J2000); }; //一律输出所选地点的区时
+  s ="<font color=red>以下时刻为所选地点的区时（"+zoneStr(r.z)+"）：</font><br>";
+  s +="太阳升起 " + f(r.s) + " 太阳降落 " + f(r.j)+"<br>";
+  s +="日上中天 " + f(r.z) + " 日下中天 " + f(r.x)+"<br>";
+  s +="民用天亮 " + f(r.c) + " 民用天黑 " + f(r.h)+"<br>";
+  s +="航海天亮 " + f(r.c2)+ " 航海天黑 " + f(r.h2)+"<br>";
+  s +="天文天亮 " + f(r.c3)+ " 天文天黑 " + f(r.h3)+"<br>";
   s +="日照时长 " + JD.timeStr(r.j-r.s-0.5) + "　　　　　　天光时长 " + JD.timeStr(r.h-r.c-0.5) + "<br>";
   if(r.sm) s += '注：'+r.sm+'<br>';
   r=SZJ.Mt(jd-sq/24);
-  s +="月亮升起 " + JD.JD2str(r.s+c) + " 月亮降落 " + JD.JD2str(r.j+c)+"<br>";
-  s +="月上中天 " + JD.JD2str(r.z+c) + " 月下中天 " + JD.JD2str(r.x+c)+"<br>";
+  s +="月亮升起 " + f(r.s) + " 月亮降落 " + f(r.j)+"<br>";
+  s +="月上中天 " + f(r.z) + " 月下中天 " + f(r.x)+"<br>";
   Cp9_out.innerHTML=s;
 }
 function shengjiang2(){ //太阳升降快算
@@ -611,23 +611,23 @@ function shengjiang2(){ //太阳升降快算
   var jd = JD.JD( year2Ayear(Cp9_y.value), 1, 1.5 ) - J2000;  //取屏幕时间
   var i,t, s='',s2='';
   for(i=0;i<368;i++){
-    t=sunShengJ(jd+i,L,fa,-1)+J2000+8/24; s2+='<font color=red>'+JD.JD2str(t).substr(6,14)+'</font>，';
-    t=sunShengJ(jd+i,L,fa, 1)+J2000+8/24; s2+=JD.timeStr(t)+'<br>';
+    t=UT2scr(sunShengJ(jd+i,L,fa,-1),0)+J2000; s2+='<font color=red>'+JD.JD2str(t).substr(6,14)+'</font>，';
+    t=UT2scr(sunShengJ(jd+i,L,fa, 1),0)+J2000; s2+=JD.timeStr(t)+'<br>';
     if(i== 91||i==275) s+='<td>'+s2+'<td>', s2='';
     if(i==183||i==367) s+='<td>'+s2+'<td>', s2='';
   }
-  Cp9_out.innerHTML='<center><b>太阳年度升降表</b><table><tr>'+s+s2+'</tr></table></center>';
+  Cp9_out.innerHTML='<center><b>太阳年度升降表（时刻为所选地点的区时）</b><table><tr>'+s+s2+'</tr></table></center>';
 }
 function shengjiang3(){ //年度时差
   var jd = JD.JD( year2Ayear(Cp9_y.value), 1, 1.5 );  //取屏幕时间
   var i,t,D, s='',s2='';
   for(i=0;i<368;i++){
-    D=jd+i-8/24-J2000, D+=dt_T(D);
+    D=scr2TD(jd+i-J2000,0); //所选地点区时每日12点
     t=pty_zty(D/36525); s2+=JD.JD2str(jd+i).substr(0,11)+' <font color=red>'+m2fm(t*86400,2,2)+'</font><br>';
     if(i== 91||i==275) s+='<td>'+s2+'<td>', s2='';
     if(i==183||i==367) s+='<td>'+s2+'<td>', s2='';
   }
-  Cp9_out.innerHTML='<center><b>太阳时差表(所用时间为北京时间每日12点)<br</b><table><tr>'+s+s2+'</tr></table></center>';
+  Cp9_out.innerHTML='<center><b>太阳时差表(所用时间为所选地点区时每日12点)<br</b><table><tr>'+s+s2+'</tr></table></center>';
 }
 
 //====================气朔表===================
