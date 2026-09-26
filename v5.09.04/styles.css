@@ -697,6 +697,7 @@ body {
  }
  #Cal4,
  #Cal_day,
+ #Cal_qs,
  #Cal_tip,
  #Cal5 {
   padding: 8px;
@@ -720,8 +721,14 @@ body {
  #Cal_tip b {
   font-weight: 500;
  }
+ .term-hint {
+  border-bottom: 1px dashed currentColor;
+  text-decoration: none;
+  cursor: help;
+ }
  #Cal4:empty,
  #Cal_day:empty,
+ #Cal_qs:empty,
  #Cal_tip:empty,
  #Cal5:empty {
   display: none;

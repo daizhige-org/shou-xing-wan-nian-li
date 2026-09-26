@@ -1133,6 +1133,11 @@ function change(){
   for(i=0; i<list.length; i++) addOp( Sel2, list[i].code, airportLabel(list[i]) );
   change2();
 }
+function selectedPlaceName(){ //所选地点的城市名,无城市名时退用机场名
+  var airport = Sel2.options.length ? airportMap[Sel2.options[Sel2.selectedIndex].value] : null;
+  if(!airport) return '';
+  return airport.city || airport.name || airport.code;
+}
 function airportLabel(ob){
   var city = ob.city || ob.country || '';
   var name = ob.name || '';
@@ -1301,14 +1306,20 @@ function RTS1(jd,vJ,vW,tz){
 日历(某日)信息页面生成
 **********************/
 function dayMessHTML(ob){
- var s  = '公元'+Ayear2year(ob.y).replace(/[B]/g, "前") + '年' + ob.m + '月' + ob.d + '日';
- s += '<br>阳历'+ob.Lyear2+'年 周' + JD.Weeks[ob.week] + ' ' + ob.XiZ;
- s += '<br>'+ob.Lyear4+'年 '+ob.Lleap + ob.Lmc + '月' + (ob.Ldn>29?'大 ':'小 ') + ob.Ldc + '日';
- s += '<br>开元'+ob.Lyear3+'年'+ob.Lmonth2+'月'+ob.Lday2+'日';
+ var s  = '公元'+Ayear2year(ob.y).replace(/[B]/g, "前") + '年' + ob.m + '月' + ob.d + '日 周' + JD.Weeks[ob.week] + ' 【' + ob.XiZ + '】';
+ s += '<br><abbr class="term-hint" title="年以正月初一为岁首；月以节气（立春、惊蛰等十二节）为界；日为连续干支纪日。立春至春节之间，月已入新年的寅月而年仍属旧年。">中国农历</abbr>'+ob.Lyear3+'年'+ob.Lmonth2+'月'+ob.Lday2+'日';
+ s += '<br><abbr class="term-hint" title="以立春为岁首的干支纪年，八字年柱即用此年。农历年则以正月初一为岁首，立春与春节之间两者可能相差一年。">节气年</abbr> '+ob.Lyear2+'年';
+ s += '<br><abbr class="term-hint" title="风羲版黄帝纪元：以公元前2517年为元年，即本历推定的干支纪年起点；以正月初一为岁首。通行的黄帝纪元以公元前2698年为元年（1911年为4609年），与此相差约180年。">黄帝纪元</abbr> '+ob.Lyear4+'年 '+ob.Lleap + ob.Lmc + '月' + (ob.Ldn>29?'大 ':'小 ') + ob.Ldc + '日';
  s += '<br>回历['+ob.Hyear+'年'+ob.Hmonth+'月'+ob.Hday+'日]';
  s += '<br>JD '+(ob.d0+J2000)+'('+ob.d0+') ';
- if(ob.jqmc) s += '<br>定'+ob.jqmc.slice(-2)+' '+ob.jqsj;
- if(ob.A+ob.B+ob.C) s += '<br>';
+ return s;
+}
+
+function qiShuoHTML(ob){ //当日节气、月相时刻(北京时间)及节日节令
+ var s = '';
+ if(ob.jqmc) s += '定'+ob.jqmc.slice(-2)+' '+ob.jqsj+'<br>';
+ if(ob.yxmc) s += (ob.yxmc.length<2?'月':'')+ob.yxmc+' '+ob.yxsj+'<br>';
+ if(s) s = '<b>气朔时刻（北京时间）</b><br>' + s;
  if(ob.A)    s += ob.A +' ';
  if(ob.B)    s += ob.B.replace(/[⚆⊙]/g, "") +' ';
  if(ob.C)    s += ob.C;
@@ -1327,8 +1338,10 @@ function showMessD(n, skipUrl){ //显时本月第n日的摘要信息。调用前
  //显示n指定的日期信息
  var ob = lun.lun[n];
  selectedMonthDay = ob.d;
- Cal5.innerHTML = RTS1(ob.d0, vJ, vW, airportTimezoneOffsetHours(ob.y, ob.m, ob.d));
+ Cal5.innerHTML = '<b>日月升降（'+selectedPlaceName()+' '+zoneStr(ob.d0)+'）</b><br>' + RTS1(ob.d0, vJ, vW, airportTimezoneOffsetHours(ob.y, ob.m, ob.d));
  Cal_day.innerHTML = dayMessHTML(ob);
+ var qs = document.getElementById('Cal_qs');
+ if(qs){ qs.innerHTML = qiShuoHTML(ob); refreshChineseMode(qs); }
  refreshChineseMode(Cal5);
  refreshChineseMode(Cal_day);
  if(Cal_pan) Cal_pan.style.display = 'none';

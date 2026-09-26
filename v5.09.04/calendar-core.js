@@ -488,7 +488,7 @@ var sty_cur2=' style="background-color:#F2F9E4; text-align: center" ';
 var i,j,c,c2,cr="",n=6,isM;
 var ob;
 this.yueLiCalc(By,Bm);
-c=this.nianhao+' 开元'+this.Ly+'年〖'+this.ShX+'年〗';
+c=this.nianhao+' 农历'+this.Ly+'年〖'+this.ShX+'年〗(*)';
 c='<span style="font-size:16px;font-weight:bold">'+c+'</span>';
 var ta0='<tr><td colspan=7 style="background-color:#0000A0;color:#FFFF00;overflow:hidden;white-space:normal">'+c+'</td></tr>';ta0+='<tr>'+'<td'+sty_head+'width="%14" height=24><a title="日，太阳">日</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="月，太阴">一</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="火，荧惑">二</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="水，太辰">三</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="木，太岁">四</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="金，太白">五</a></td>'+'<td'+sty_head+'width="%14" height=24><a title="土，太填">六</a></td></tr>';
 for(i=0;i<this.dn;i++){
@@ -522,7 +522,7 @@ if(ob.yxmc=="望")b2+=c+'日 '+ob.yxsj+'<font color=#F0B000> ●</font>月'+ob.y
 if(ob.yxmc=='上弦')b3+=c+'日 '+ob.yxsj+'<font color=#F0B000> ◑</font>'+ob.yxmc+'<br>';
 if(ob.yxmc=="下弦")b3+=c+'日 '+ob.yxsj+'<font color=#F0B000> ◐</font>'+ob.yxmc+'<br>';
 if(ob.jqmc)b4+=c+'日 '+ob.jqsj+' '+ob.jqmc+'<br>';}
-this.pg2=b2+'<br>'+b3+'<br>'+b4;};}
+this.pg2='<b>月相节气（北京时间）</b><br>'+b2+'<br>'+b3+'<br>'+b4;};}
 function nianLiHTML(y,fg){
 var i,j,s='',s1,s2,v,qi;
 SSQ.calcY(int2((y-2000)*365.2422+180));
